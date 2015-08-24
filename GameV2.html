@@ -37,7 +37,7 @@ function createPlanet(scene_name,radius,colour,group) {
         // transparent: true, 
         // opacity: 1.0
 	} );
-	var geometry = new THREE.SphereGeometry(radius,16,8);
+	var geometry = new THREE.SphereGeometry(radius,2,2);
 	var meshname = new THREE.Mesh(geometry, material);
 	group.add(meshname);
 
@@ -131,6 +131,8 @@ var leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray;
 var cleaner_positionArray, cleaner_velocityArray, cleaner_objectArray;
 
 var mouse = new THREE.Vector2(), INTERSECTED;
+
+var velocity = [];
 
 var ring;
 var target_altitude = 120;
@@ -258,15 +260,15 @@ var acc_scale = 1;
 var vel_scale = 1;
 
 leo_start_index = 0;
-leo_end_index = 50;
+leo_end_index = 600;
 leo_destroyed = 0;
 
 meo_start_index = 0;
-meo_end_index = 50;
+meo_end_index = 600;
 // meo_destroyed = 0;
 
 geo_start_index = 0;
-geo_end_index = 50;
+geo_end_index = 600;
 // geo_destroyed = 0;
 
 //Create Debris
@@ -284,7 +286,7 @@ function create_debris(altitude, position_array, velocity_array, object_array, s
 	velocity_array.push(vel);
 	// var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
 	scobject = new THREE.Object3D();
-	createPlanet(scene, 5 , colour, scobject);
+	// createPlanet(scene, 5 , colour, scobject);
 	object_array.push(scobject);
 	state_array.push(0);
 	destroyed_array.push(0);
@@ -321,26 +323,230 @@ leo_target = 0;
 meo_target = 0;
 geo_target = 0;
 
+leo_colour = new THREE.Color( Math.random()*0.1 + 0.3 , Math.random()*0.1 + 0.6, Math.random()*0.1 + 0.3 );
+
 // // Create LEO
 for(var i=leo_start_index; i<leo_end_index; i++) {
-	leo_colour = new THREE.Color( Math.random()*0.1 + 0.1 , Math.random()*0.1 + 0.1, Math.random()*0.1 + 0.1 );
 	leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
 	create_debris(120, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, leo_axis );
 }
 
 // // Create MEO
 for(var i=meo_start_index; i<meo_end_index; i++) {
-	meo_colour = new THREE.Color( Math.random()*0.1 + 0.1 ,Math.random()*0.1 + 0.1 , Math.random()*0.1 + 0.1 );
 	meo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-	create_debris(240, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, meo_colour, meo_axis );
+	create_debris(240, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, meo_axis );
 }
 
 // // Create GEO
 for(var i=geo_start_index; i<geo_end_index; i++) {
-	geo_colour = new THREE.Color( Math.random()*0.1 + 0.1, Math.random()*0.1 + 0.1, Math.random()*0.1 + 0.1 )
 	geo_axis = new THREE.Vector3(0,1,0).normalize();
-	create_debris(400, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, geo_colour, geo_axis );
+	create_debris(400, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, geo_axis );
 }
+
+scene.add( new THREE.AmbientLight( 0x444444 ) );
+
+var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+light1.position.set( 1, 1, 1 );
+scene.add( light1 );
+
+var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
+light2.position.set( 0, -1, 0 );
+scene.add( light2 );
+
+//
+
+var triangles = leo_end_index + meo_end_index + geo_end_index;
+
+var geometry = new THREE.BufferGeometry();
+
+// break geometry into
+// chunks of 21,845 triangles (3 unique vertices per triangle)
+// for indices to fit into 16 bit integer number
+// floor(2^16 / 3) = 21845
+
+var chunkSize = 21845;
+
+var indices = new Uint16Array( triangles * 3 );
+
+for ( var i = 0; i < indices.length; i ++ ) {
+
+	indices[ i ] = i % ( 3 * chunkSize );
+
+}
+
+positions = new Float32Array( triangles * 3 * 3 );
+var normals = new Float32Array( triangles * 3 * 3 );
+var colors = new Float32Array( triangles * 3 * 3 );
+
+var color = new THREE.Color();
+
+var n = 800, n2 = n/2;	// triangles spread in the cube
+var d = 12, d2 = d/2;	// individual triangle size
+
+var pA = new THREE.Vector3();
+var pB = new THREE.Vector3();
+var pC = new THREE.Vector3();
+
+var cb = new THREE.Vector3();
+var ab = new THREE.Vector3();
+
+for ( var i = 0; i < positions.length; i += 9 ) {
+
+	// velocity
+	velocity.push(new THREE.Vector3( Math.random()-0.5, Math.random()-0.5 , Math.random()-0.5 ));
+
+	// positions
+
+	var x = leo_debris_positionArray[i/9].x;
+	var y = leo_debris_positionArray[i/9].y;
+	var z = leo_debris_positionArray[i/9].z;
+
+	var ax = x + Math.random() * d - d2;
+	var ay = y + Math.random() * d - d2;
+	var az = z + Math.random() * d - d2;
+
+	var bx = x + Math.random() * d - d2;
+	var by = y + Math.random() * d - d2;
+	var bz = z + Math.random() * d - d2;
+
+	var cx = x + Math.random() * d - d2;
+	var cy = y + Math.random() * d - d2;
+	var cz = z + Math.random() * d - d2;
+
+	positions[ i ]     = ax;
+	positions[ i + 1 ] = ay;
+	positions[ i + 2 ] = az;
+
+	positions[ i + 3 ] = bx;
+	positions[ i + 4 ] = by;
+	positions[ i + 5 ] = bz;
+
+	positions[ i + 6 ] = cx;
+	positions[ i + 7 ] = cy;
+	positions[ i + 8 ] = cz;
+
+	// flat face normals
+
+	pA.set( ax, ay, az );
+	pB.set( bx, by, bz );
+	pC.set( cx, cy, cz );
+
+	cb.subVectors( pC, pB );
+	ab.subVectors( pA, pB );
+	cb.cross( ab );
+
+	cb.normalize();
+
+	var nx = cb.x;
+	var ny = cb.y;
+	var nz = cb.z;
+
+	normals[ i ]     = nx;
+	normals[ i + 1 ] = ny;
+	normals[ i + 2 ] = nz;
+
+	normals[ i + 3 ] = nx;
+	normals[ i + 4 ] = ny;
+	normals[ i + 5 ] = nz;
+
+	normals[ i + 6 ] = nx;
+	normals[ i + 7 ] = ny;
+	normals[ i + 8 ] = nz;
+
+	// colors
+
+	var vx = Math.random()/0.5 + 0.5;
+	var vy = Math.random()/0.5 + 0.5;
+	var vz = Math.random()/0.5 + 0.5;
+
+	color.setRGB( vx, vy, vz );
+
+	colors[ i ]     = color.r;
+	colors[ i + 1 ] = color.g;
+	colors[ i + 2 ] = color.b;
+
+	colors[ i + 3 ] = color.r;
+	colors[ i + 4 ] = color.g;
+	colors[ i + 5 ] = color.b;
+
+	colors[ i + 6 ] = color.r;
+	colors[ i + 7 ] = color.g;
+	colors[ i + 8 ] = color.b;
+
+}
+
+geometry.addAttribute( 'index', new THREE.BufferAttribute( indices, 1 ) );
+geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+var offsets = triangles / chunkSize;
+
+for ( var i = 0; i < offsets; i ++ ) {
+
+	var offset = {
+		start: i * chunkSize * 3,
+		index: i * chunkSize * 3,
+		count: Math.min( triangles - ( i * chunkSize ), chunkSize ) * 3
+	};
+
+	geometry.offsets.push( offset );
+
+}
+
+geometry.computeBoundingSphere();
+
+// var material = new THREE.MeshPhongMaterial( {
+// 	color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
+// 	side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+// } );
+
+var material = new THREE.MeshPhongMaterial( {
+	color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
+	vertexColors: THREE.VertexColors
+} );
+
+// var material = new THREE.MeshBasicMaterial( {
+// 	color: 0xaaaaaa, vertexColors: THREE.VertexColors
+// } );
+
+
+
+mesh = new THREE.Mesh( geometry, material );
+scene.add( mesh );
+
+sphere_group = new THREE.Object3D();
+
+
+var geometry = new THREE.SphereGeometry( 20, 20, 20 );
+
+for ( var i = 0; i < 10; i ++ ) {
+
+	var object = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff } ) );
+
+	object.position.x = Math.random() * 800 - 400;
+	object.position.y = Math.random() * 800 - 400;
+	object.position.z = Math.random() * 800 - 400;
+
+	object.rotation.x = Math.random() * 2 * Math.PI;
+	object.rotation.y = Math.random() * 2 * Math.PI;
+	object.rotation.z = Math.random() * 2 * Math.PI;
+
+	object.scale.x = 5;
+	object.scale.y = 5;
+	object.scale.z = 5;
+
+	sphere_group.add(object);
+
+
+}
+
+scene.add(sphere_group);
+
+
+
+
+
 
 
 function render(){
@@ -366,7 +572,7 @@ function render_debris(position_array, velocity_array, object_array, i)
 	position_array[i].y = position_array[i].y + velocity_array[i].y/vel_scale;
 	position_array[i].z = position_array[i].z + velocity_array[i].z/vel_scale;
 
-	object_array[i].position.set(position_array[i].x*scale, position_array[i].y*scale, position_array[i].z*scale);
+	//object_array[i].position.set(position_array[i].x*scale, position_array[i].y*scale, position_array[i].z*scale);
 
 }
 
@@ -436,6 +642,24 @@ if ( cleaner_objectArray.length > 0){
 	}
 
 }
+
+for ( var i = 0; i < positions.length; i += 9 ) {
+
+					positions[ i ]     = positions[ i ] + leo_debris_velocityArray[i/9].x;
+					positions[ i + 1 ] = positions[ i + 1] + leo_debris_velocityArray[i/9].y;
+					positions[ i + 2 ] = positions[ i + 2] + leo_debris_velocityArray[i/9].z;
+
+					positions[ i + 3 ] = positions[ i + 3] + leo_debris_velocityArray[i/9].x;
+					positions[ i + 4 ] = positions[ i + 4] + leo_debris_velocityArray[i/9].y;
+					positions[ i + 5 ] = positions[ i + 5] + leo_debris_velocityArray[i/9].z;
+
+					positions[ i + 6 ] = positions[ i + 6] + leo_debris_velocityArray[i/9].x;
+					positions[ i + 7 ] = positions[ i + 7] + leo_debris_velocityArray[i/9].y;
+					positions[ i + 8 ] = positions[ i + 8] + leo_debris_velocityArray[i/9].z;
+
+				}
+
+				mesh.geometry.attributes.position.needsUpdate = true;
 	
 
 }
