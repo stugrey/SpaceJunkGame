@@ -515,7 +515,7 @@ var material = new THREE.MeshPhongMaterial( {
 mesh = new THREE.Mesh( geometry, material );
 scene.add( mesh );
 
-sphere_group = new THREE.Object3D();
+sphere_group = [];
 
 
 var geometry = new THREE.SphereGeometry( 20, 20, 20 );
@@ -536,12 +536,19 @@ for ( var i = 0; i < 10; i ++ ) {
 	object.scale.y = 5;
 	object.scale.z = 5;
 
-	sphere_group.add(object);
+	sc_object = new THREE.Object3D();
+	sc_object.add(object);
+
+	sphere_group.push(sc_object);
+
+	scene.add(sc_object);
+
+
 
 
 }
 
-scene.add(sphere_group);
+
 
 
 
@@ -671,7 +678,7 @@ controls.update();
 function checkIntersection(){
 	raycaster.setFromCamera( mouse, camera );
 
-	intersects = raycaster.intersectObjects( scene.children, true );
+	intersects = raycaster.intersectObjects( sphere_group, true );
 
 	if ( intersects.length > 0 ) {
 
