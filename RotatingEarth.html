@@ -1,0 +1,1119 @@
+<!doctype html>
+<html>
+
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<title>WebGL Rotating Earth</title>
+	<style>
+
+	body {
+	background-color: #000000;
+	margin: 0px;
+	overflow: hidden;
+	color: #ff8800;
+	}
+
+	#buttons {
+		color:#D8D8D8;
+		position: absolute;
+		top: 0px; 
+		width: 100%;
+		right: 0px;
+		padding: 0px;
+		margin: 0px;
+		height: 100%;
+
+	}
+
+	#label {
+		color:#D8D8D8;
+		top: 0px; width: 100%;
+		text-align: left;
+	}
+
+
+	#launch {
+    width: 98%;
+    height: 8%;
+    text-align: center;
+    margin: 1%;
+    display: block;
+    background-color: rgb(255,255,255);
+    color:rgb(50,50,50);
+    font-size: 30pt;
+  }
+
+  #choose_geo,#choose_meo,#choose_leo {
+    width: 32%;
+    height: 8%;
+    text-align: center;
+    font-size: 30pt;
+    margin-left: 1%;
+    display: block;
+    float: left;
+   
+  }
+  #screen_display {
+    min-height: 80%;
+    text-align: center;
+    font-size: 60pt;
+    /*background-color: rgb(0,255,255);*/
+  }
+
+  #display_message {
+  	position: absolute;
+  	width: 100%;
+  	margin-top: 20%;
+}
+
+  #score {
+  	position: absolute;
+  	width: 100%;
+}
+
+
+#choose_leo {
+    background-color: rgb(255, 30, 30);
+	color: rgb(50, 0, 0);
+}
+
+#choose_meo {
+    background-color: rgb(50, 255, 50);
+    color: rgb(0, 50, 0);
+
+}
+
+#choose_geo {
+    background-color: rgb(100, 180, 255);
+    color: rgb(0, 0, 50);
+}
+
+
+	</style>
+</head>
+
+<body>
+
+<div id="container"></div>
+		
+<div id="buttons">
+<div id="screen_display"><p id="display_message"><p id="score"></div>
+<div id="launch">LAUNCH</div>
+<div id="choose_leo">Select LEO: <div id="leo_total"></div></div>
+<div id="choose_meo">Select MEO: <div id="meo_total"></div></div>
+<div id="choose_geo">Select GEO: <div id="geo_total"></div></div>
+
+</div>
+
+
+</body>
+
+<script src="three.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+
+<script>
+function createPlanet(scene_name,radius,colour,group) {
+	var material = new THREE.MeshBasicMaterial( {
+		color: colour,
+        // shading: THREE.SmoothShading,
+        // transparent: true, 
+        // opacity: 1.0
+	} );
+	var geometry = new THREE.SphereGeometry(radius,16,8);
+	var meshname = new THREE.Mesh(geometry, material);
+	group.add(meshname);
+
+	scene_name.add(group);
+
+
+
+	// geometry = new THREE.Geometry();
+	// sprite = THREE.ImageUtils.loadTexture( "ball.png" );
+
+	// var vertex = new THREE.Vector3();
+	// vertex.x = 0;
+	// vertex.y = 0;
+	// vertex.z = 0;
+
+	// geometry.vertices.push( vertex );
+
+	// colors[0] = colour;
+	// // colors[0].setHSL( ( vertex.x + 1000 ) / 2000, 1, 0.5 );
+
+	// geometry.colors = colors;
+	// material = new THREE.PointCloudMaterial( { size: radius*10, map: sprite, vertexColors: THREE.VertexColors, alphaTest: 0.5, transparent: true } );
+	// material.color = colour;
+	// particles = new THREE.PointCloud( geometry, material );
+	// group.add(particles);
+	// scene_name.add(group);
+
+}
+</script>
+
+<!-- Shaders -->
+<script id="vertexShader" type="x-shader/x-vertex">
+varying vec2 vUv;
+varying vec3 vNormal;
+
+void main() 
+{
+	vUv = uv; //Texture position
+	vNormal = normal; // Calculate surface normal
+	gl_Position =   projectionMatrix * modelViewMatrix * vec4(position,1.0);
+}
+</script>
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+uniform sampler2D spectexture;
+uniform sampler2D cloudtexture;
+uniform vec3 sunDirection;
+uniform vec3 viewDirection;
+
+varying vec2 vUv;
+varying vec3 vNormal;
+
+void main() 
+{
+
+	vec3 view = normalize(viewDirection);
+
+	// Values from textures using the texture coordinate from the vertex shader
+	vec3 colorDay = texture2D(texture1, vUv).rgb;
+	vec3 colorNight = texture2D(texture2, vUv).rgb;
+	vec3 colorSpec = texture2D(spectexture, vUv).rgb;
+	// Rather than a RGB colour for the clouds we just want a numerical value
+	// In this case we use the red channel although this is obviosuly not ideal
+	float cloudamount = texture2D(cloudtexture, vUv).r;
+
+	//Calculate the diffuse component of the reflected light from the sun
+	float sphere_diffuse = max(dot(normalize(vNormal), sunDirection), 0.0);
+
+	// Calculate the amount of atmospheric reflection absed on viewer position
+	float atmos_amount = max(dot(normalize(vNormal), sunDirection), 0.0);
+	vec3 R  = 2.0 * ( dot(normalize(vNormal),sunDirection)) * normalize(vNormal) - sunDirection;
+	vec3 E = view;
+
+	//Calculate amount of specular light reflected
+	//vec3 specular_value =  colorSpec * pow( max(dot(R,E), 0.0), 6.0 ); Not Working
+	vec3 specular_value =  colorSpec * 0.0;
+
+	vec3 lights;
+
+	if (colorNight.r < 0.6) {
+	lights = vec3(colorNight.r/3.0,colorNight.g/3.0,colorNight.b/1.5);
+	} else {
+	lights = vec3(colorNight.r*1.0,colorNight.g*0.8,colorNight.b*0.4);
+	}
+
+	colorNight=lights;
+
+	// compute cosine sun to normal so -1 is away from sun and +1 is toward sun.
+	float cosineAngleSunToNormal = dot(normalize(vNormal), sunDirection);
+
+	// sharpen the edge beween the transition
+	//cosineAngleSunToNormal = clamp( cosineAngleSunToNormal * 30.0, -1.0, 1.0);
+	sphere_diffuse = clamp( sphere_diffuse * 10.0, -1.0, 1.0);
+
+	// convert to 0 to 1 for mixing
+	float mixAmount = cosineAngleSunToNormal * 0.5 + 0.5;
+
+	// Select day or night texture based on mix.
+	vec3 blue = vec3(0.2,0.4,0.8);
+	vec3 color = mix( colorNight+vec3(0.1,0.1,0.2)*cloudamount, colorDay+(specular_value/1.3)+vec3(1.0,1.0,1.0)*cloudamount+blue*(1.0-atmos_amount), sphere_diffuse);
+
+	gl_FragColor = vec4( color , 1.0 );
+
+}
+</script>
+
+<!-- End Shaders -->
+<script type="text/javascript">
+
+
+
+
+// function fn_end(e)
+// {
+//   // $(e.target).css('opacity', 1);
+
+// }
+// document.getElementById("pieces_of_junk").innerHTML="loads";
+
+function leo_selected(e)
+{
+	// console.log("leo_selected");
+	target_altitude = 120;
+	target_regime = 1;
+	//#choose_geo,#choose_meo,#choose_leo
+	document.getElementById("choose_leo").style.opacity=1.0;
+	document.getElementById("choose_meo").style.opacity=0.5;
+	document.getElementById("choose_geo").style.opacity=0.5;
+
+}
+
+$( "#choose_leo" ).click(function(e) {
+   leo_selected(e);
+});
+
+$('#choose_leo').on('touchstart', function(e)
+{
+  leo_selected(e);
+  e.preventDefault();
+});
+
+
+function meo_selected(e)
+{
+	// console.log("meo_selected");
+	target_altitude = 240;
+	target_regime = 2;
+	document.getElementById("choose_leo").style.opacity=0.5;
+	document.getElementById("choose_meo").style.opacity=1.0;
+	document.getElementById("choose_geo").style.opacity=0.5;
+}
+
+$( "#choose_meo" ).click(function(e) {
+   meo_selected(e);
+});
+
+$('#choose_meo').on('touchstart', function(e)
+{
+  meo_selected(e);
+  e.preventDefault();
+});
+
+
+function geo_selected(e)
+{
+	// console.log("geo_selected");
+	target_altitude = 400;
+	target_regime = 3;
+	document.getElementById("choose_leo").style.opacity=0.5;
+	document.getElementById("choose_meo").style.opacity=0.5;
+	document.getElementById("choose_geo").style.opacity=1.0;
+}
+
+$( "#choose_geo" ).click(function(e) {
+   geo_selected(e);
+});
+
+$('#choose_geo').on('touchstart', function(e)
+{
+  geo_selected(e);
+  e.preventDefault();
+});
+
+
+// var alpha, beta, gamma;
+
+// if (window.DeviceOrientationEvent) {
+
+// // Listen for the deviceorientation event and handle the raw data
+// window.addEventListener('deviceorientation', function(eventData) {
+
+//   // gamma is the left-to-right tilt in degrees, where right is positive
+//   gamma = THREE.Math.degToRad(eventData.gamma);
+  
+//   // beta is the front-to-back tilt in degrees, where front is positive
+//   beta = THREE.Math.degToRad(eventData.beta);
+  
+//   // alpha is the compass direction the device is facing in degrees
+//   alpha = THREE.Math.degToRad(eventData.alpha);
+
+  
+//   }, false);
+// } else {
+
+// }
+
+var leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray;
+var meo_debris_positionArray,  meo_debris_velocityArray,  meo_debris_objectArray;
+var geo_debris_positionArray, geo_debris_velocityArray, geo_debris_objectArray;
+
+var cleaner_positionArray, cleaner_velocityArray, cleaner_objectArray;
+
+var ring;
+var target_altitude = 120;
+var target_regime = 1;
+
+var number_of_debris = 60;
+
+var debris_size = 0.8;
+var sphere;
+var rotationamount = 0;
+var camheight = 0;
+var x = 0.0;
+var z = 0.0;
+
+
+var particle_buffer;
+
+game_state = "paused";
+
+document.getElementById("display_message").innerHTML="Select the target orbit using the buttons below. <br> Press LAUNCH to remove some junk!";
+
+// set the scene size
+var WIDTH = window.innerWidth,
+HEIGHT = window.innerHeight;
+
+// set some camera attributes
+var VIEW_ANGLE = 45,
+ASPECT = WIDTH / (HEIGHT*0.8),
+NEAR = 0.1,
+FAR = 100000;
+
+// create a WebGL renderer, camera
+// and a scene
+var renderer = new THREE.WebGLRenderer();
+renderer.setPixelRatio( window.devicePixelRatio );
+var camera = new THREE.PerspectiveCamera(  VIEW_ANGLE,
+ASPECT,
+NEAR,
+FAR  );
+var scene = new THREE.Scene();
+
+camera.position.z = 200;
+camera.position.y = 0.0;
+
+// start the renderer
+renderer.setSize(WIDTH, HEIGHT*0.8);
+document.body.appendChild( renderer.domElement );
+
+leo_selected(1);
+
+// // Particles Test
+// geometry = new THREE.Geometry();
+// sprite = THREE.ImageUtils.loadTexture( "ball.png" );
+// for ( i = 0; i < 5000; i ++ ) {
+
+// 	var vertex = new THREE.Vector3();
+// 	vertex.x = 200 * Math.random() - 100;
+// 	vertex.y = 200 * Math.random() - 100;
+// 	vertex.z = 200 * Math.random() - 100;
+
+// 	geometry.vertices.push( vertex );
+
+// 	colors[ i ] = new THREE.Color( 0xffffff );
+// 	colors[ i ].setHSL( ( vertex.x + 1000 ) / 2000, 1, 0.5 );
+
+// }
+// geometry.colors = colors;
+// material = new THREE.PointCloudMaterial( { size: 35, map: sprite, vertexColors: THREE.VertexColors, alphaTest: 0.5, transparent: true } );
+// material.color.setHSL( 1.0, 0.2, 0.7 );
+// particles = new THREE.PointCloud( geometry, material );
+// scene.add( particles );
+
+//Particles test 2
+
+// var particles = 3000;
+
+// var geometry = new THREE.BufferGeometry();
+
+// var positions = new Float32Array( particles * 3 );
+// var colors = new Float32Array( particles * 3 );
+
+// var color = new THREE.Color();
+
+// var n = 500, n2 = n / 2; // particles spread in the cube
+
+// for ( var i = 0; i < positions.length; i += 3 ) {
+
+// 	// positions
+
+// 	// var x = Math.random() * n - n2;
+// 	// var y = Math.random() * n - n2;
+// 	// var z = Math.random() * n - n2;
+// 	var x = 100;
+// 	var y = 100;
+// 	var z = 100;
+
+// 	positions[ i ]     = x;
+// 	positions[ i + 1 ] = y;
+// 	positions[ i + 2 ] = z;
+
+// 	// colors
+
+// 	var vx = ( x / n ) + 0.5;
+// 	var vy = ( y / n ) + 0.5;
+// 	var vz = ( z / n ) + 0.5;
+
+// 	color.setRGB( vx, vy, vz );
+
+// 	colors[ i ]     = color.r;
+// 	colors[ i + 1 ] = color.g;
+// 	colors[ i + 2 ] = color.b;
+
+// }
+
+// geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+// geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+// geometry.computeBoundingSphere();
+
+// //
+
+// var material = new THREE.PointCloudMaterial( { size: 15, vertexColors: THREE.VertexColors } );
+
+// particleSystem = new THREE.PointCloud( geometry, material );
+// scene.add( particleSystem );
+
+
+
+
+
+
+
+var pointLight = new THREE.PointLight(0xFFFFFF);
+
+// set its position
+pointLight.position.x = 0.5;
+pointLight.position.y = 0.5;
+pointLight.position.z = 0.5;
+
+var uniforms = {
+	sunDirection: { type: "v3", value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Not Used!
+	viewDirection: { type: "v3", value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Not Used!
+	texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "earth1024.jpg" ) },
+	texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthNight1024.jpg" ) }, 
+	spectexture: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthSpec.jpg" ) },
+	cloudtexture: { type: "t", value: THREE.ImageUtils.loadTexture( "clouds1024.jpg" ) }
+};
+
+var vertShader = document.getElementById('vertexShader').innerHTML;
+var fragShader = document.getElementById('fragmentShader').innerHTML;
+
+// create the sphere's material
+var shaderMaterial = new THREE.ShaderMaterial({
+	uniforms: uniforms,
+	vertexShader:   vertShader,
+	fragmentShader: fragShader
+});
+
+// set up the sphere vars
+var radius = 50, segments = 64, rings = 64;
+
+// create a new mesh with sphere geometry -
+// we will cover the sphereMaterial next!
+var earth = new THREE.Mesh(
+new THREE.SphereGeometry(radius, segments, rings),
+shaderMaterial);
+
+// add to the scene
+scene.add(pointLight);
+
+// add the sphere to the scene
+scene.add(earth);
+scene.add(camera);
+
+camera.position.x = 1000;
+camera.position.y = 1000;
+camera.position.z = 0;
+
+camera.lookAt(earth.position)
+
+
+
+
+
+//Add Stars sphere
+// var texture = THREE.ImageUtils.loadTexture( "starmap4096.png" );
+// var test_material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide, map: texture} );
+// var stars = new THREE.Mesh(
+// new THREE.SphereGeometry(100000, 16, 16), test_material);
+// scene.add(stars);
+
+var ring_geometry = new THREE.RingGeometry( 0.9, 1, 32, 2 );
+var material = new THREE.MeshBasicMaterial( { color: 0x333333 , wireframe: true } );
+ring = new THREE.Mesh( ring_geometry, material );
+
+ring.lookAt(new THREE.Vector3(0,1,0))
+scene.add( ring );
+
+// console.log(ring_geometry);
+
+
+leo_debris_objectArray = [];
+leo_debris_positionArray = [];
+leo_debris_velocityArray = [];
+leo_debris_state_array = [];
+leo_debris_destroyed_array = [];
+
+meo_debris_objectArray = [];
+meo_debris_positionArray = [];
+meo_debris_velocityArray = [];
+meo_debris_state_array = [];
+meo_debris_destroyed_array = [];
+
+geo_debris_objectArray = [];
+geo_debris_positionArray = [];
+geo_debris_velocityArray = [];
+geo_debris_state_array = [];
+geo_debris_destroyed_array = [];
+
+cleaner_objectArray = [];
+cleaner_positionArray = [];
+cleaner_velocityArray = [];
+cleaner_regime_array = [];
+cleaner_target_array = [];
+cleaner_state_array = []
+
+var scale = 1.0;
+var acc_scale = 1;
+var vel_scale = 1;
+
+leo_start_index = 0;
+leo_end_index = 10;
+leo_destroyed = 0;
+
+meo_start_index = 0;
+meo_end_index = 10;
+meo_destroyed = 0;
+
+geo_start_index = 0;
+geo_end_index = 10;
+geo_destroyed = 0;
+
+//Create Debris
+var GM = 100;
+
+function create_debris(altitude, position_array, velocity_array, object_array, state_array, destroyed_array, colour, axis)
+{
+	var speed = Math.sqrt(GM / altitude); 
+	var pos = new THREE.Vector3(1,0,0);
+	// var axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+	var angle = Math.random()*2*3.14;
+	pos.applyAxisAngle(axis, angle);
+	var vel = axis.cross(pos).normalize().multiplyScalar(speed);
+	position_array.push(pos.multiplyScalar(altitude));
+	velocity_array.push(vel);
+	// var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+	scobject = new THREE.Object3D();
+	createPlanet(scene, 5 , colour, scobject);
+	object_array.push(scobject);
+	state_array.push(0);
+	destroyed_array.push(0);
+}
+
+function create_cleaner(e, regime, target)
+{
+	// Basic Removal
+	number_of_debris = number_of_debris - 1;
+	// document.getElementById("pieces_of_junk").innerHTML=number_of_debris;
+	altitude = 55;
+
+	// Create a cleaner
+	var pos = new THREE.Vector3(1,0,0);
+	var axis = new THREE.Vector3(0,1,0).normalize();
+
+	var angle = Math.random()*2*3.14;
+	pos.applyAxisAngle(axis, angle);
+	var speed = Math.sqrt(GM / altitude);
+	var vel = axis.cross(pos).normalize().multiplyScalar(speed);
+
+	cleaner_positionArray.push(pos.multiplyScalar(altitude));
+	cleaner_velocityArray.push(vel);
+	var color = new THREE.Color( 1,1,1 );
+	scobject = new THREE.Object3D();
+	createPlanet(scene, 8 , color, scobject);
+	cleaner_objectArray.push(scobject);
+	cleaner_regime_array.push(regime);
+	cleaner_target_array.push(target);
+	cleaner_state_array.push(0);
+}
+
+leo_target = 0;
+meo_target = 0;
+geo_target = 0;
+
+$('#launch').on('touchstart', function(e)
+{
+
+	if (game_state == "paused") {
+		game_state = "active";
+		document.getElementById("display_message").innerHTML="";
+	}
+
+	regime = target_regime;
+	if (regime == 1){
+		if (leo_target < leo_end_index)
+		{
+			create_cleaner(e, regime, leo_target);
+			e.preventDefault();
+			leo_target = leo_target + 1;
+		}
+	}
+	if (regime == 2){
+		if (meo_target < meo_end_index)
+		{
+			create_cleaner(e, regime, meo_target);
+			e.preventDefault();
+			meo_target = meo_target + 1;
+		}
+
+	}
+	if (regime == 3){
+		if (geo_target < geo_end_index)
+		{
+			create_cleaner(e, regime, geo_target);
+			e.preventDefault();
+			geo_target = geo_target + 1;
+		}
+	}
+
+});
+
+
+$( "#launch" ).click(function(e) {
+
+	if (game_state == "paused") {
+		game_state = "active";
+		document.getElementById("display_message").innerHTML="";
+	}
+
+	regime = target_regime;
+	if (regime == 1){
+		if (leo_target < leo_end_index)
+		{
+			create_cleaner(e, regime, leo_target);
+			e.preventDefault();
+			// console.log(regime, leo_target);
+			// console.log(cleaner_target_array);
+			leo_target = leo_target + 1;
+		}
+	}
+	if (regime == 2){
+		if (meo_target < meo_end_index)
+		{
+			create_cleaner(e, regime, meo_target);
+			e.preventDefault();
+			// console.log(regime, meo_target);
+			// console.log(cleaner_target_array);
+			meo_target = meo_target + 1;
+		}
+
+	}
+	if (regime == 3){
+		if (geo_target < geo_end_index)
+		{
+			create_cleaner(e, regime, geo_target);
+			e.preventDefault();
+			// console.log(regime, geo_target);
+			// console.log(cleaner_target_array);
+			geo_target = geo_target + 1;
+		}
+	}
+	
+});
+
+
+// // Create LEO
+for(var i=leo_start_index; i<leo_end_index; i++) {
+	leo_colour = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+	leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+	create_debris(120, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, leo_axis );
+}
+
+// // Create MEO
+for(var i=meo_start_index; i<meo_end_index; i++) {
+	meo_colour = new THREE.Color( Math.random()*0.25, 0.8, Math.random()*0.25 );
+	meo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+	create_debris(240, meo_debris_positionArray, meo_debris_velocityArray, meo_debris_objectArray, meo_debris_state_array, meo_debris_destroyed_array, meo_colour, meo_axis );
+}
+
+// // Create GEO
+for(var i=geo_start_index; i<geo_end_index; i++) {
+	geo_colour = new THREE.Color( Math.random()*0.25, Math.random()*0.25, 0.8 )
+	geo_axis = new THREE.Vector3(0,1,0).normalize();
+	create_debris(400, geo_debris_positionArray, geo_debris_velocityArray, geo_debris_objectArray, geo_debris_state_array, geo_debris_destroyed_array, geo_colour, geo_axis );
+}
+
+
+function render(){
+renderer.render(scene, camera);
+
+
+function render_debris(position_array, velocity_array, object_array, i)
+{
+
+	radius = position_array[i].length();
+
+	acceleration = -GM / (radius*radius);
+
+	acc_vector = position_array[i].clone();
+
+	acc_vector.divideScalar(radius).multiplyScalar(acceleration);
+
+	velocity_array[i].x = velocity_array[i].x + acc_vector.x/acc_scale;
+	velocity_array[i].y = velocity_array[i].y + acc_vector.y/acc_scale;
+	velocity_array[i].z = velocity_array[i].z + acc_vector.z/acc_scale;
+
+	position_array[i].x = position_array[i].x + velocity_array[i].x/vel_scale;
+	position_array[i].y = position_array[i].y + velocity_array[i].y/vel_scale;
+	position_array[i].z = position_array[i].z + velocity_array[i].z/vel_scale;
+
+	object_array[i].position.set(position_array[i].x*scale, position_array[i].y*scale, position_array[i].z*scale);
+
+}
+
+
+if (game_state != "paused" && game_state != "game_over")
+{
+
+// // Render LEO Debris
+for(var i=leo_start_index; i<leo_debris_objectArray.length; i++) {
+	if (leo_debris_destroyed_array[i] == 0){
+		render_debris(leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, i);
+	}
+}
+
+// // Render MEO Debris
+for(var i=meo_start_index; i<meo_debris_objectArray.length; i++) {
+	if (meo_debris_destroyed_array[i] == 0){
+	render_debris(meo_debris_positionArray, meo_debris_velocityArray, meo_debris_objectArray, i);
+	}
+}
+
+// // Render GEO Debris
+for(var i=geo_start_index; i<geo_debris_objectArray.length; i++) {
+	if (geo_debris_destroyed_array[i] == 0){
+	render_debris(geo_debris_positionArray, geo_debris_velocityArray, geo_debris_objectArray, i);
+	}
+}
+
+// Render LEO Cleaner
+if ( cleaner_objectArray.length > 0){
+
+	for(var i=0; i<cleaner_objectArray.length; i++) {
+		if (cleaner_state_array[i] != -1){
+
+			if (cleaner_regime_array[i] == 1){
+
+
+				var target_vec = new THREE.Vector3();
+				target_vec.subVectors(leo_debris_positionArray[cleaner_target_array[i]], cleaner_positionArray[i]);
+				target_distance = target_vec.length();
+				target_dir = target_vec.normalize();
+
+				if (target_distance > 2.0)
+				{
+					cleaner_positionArray[i].x = cleaner_positionArray[i].x + target_vec.x*3;
+					cleaner_positionArray[i].y = cleaner_positionArray[i].y + target_vec.y*3;
+					cleaner_positionArray[i].z = cleaner_positionArray[i].z + target_vec.z*3;
+				}
+				else if (leo_debris_state_array[cleaner_target_array[i]] < 1.0)
+				{
+					cleaner_positionArray[i] = leo_debris_positionArray[cleaner_target_array[i]];
+					cleaner_objectArray[i].children[0].material.color.b = 0.0;
+
+					scale_factor = 1 - leo_debris_state_array[cleaner_target_array[i]];
+
+					cleaner_objectArray[i].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+					leo_debris_objectArray[cleaner_target_array[i]].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+
+					leo_debris_state_array[cleaner_target_array[i]] = leo_debris_state_array[cleaner_target_array[i]] + 0.02;
+					
+				}
+				else
+				{
+					cleaner_positionArray[i] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					leo_debris_positionArray[cleaner_target_array[i]] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					leo_destroyed = leo_destroyed +1;
+
+					leo_debris_state_array[cleaner_target_array[i]] = -0.01;
+					cleaner_state_array[i] = -1;
+					scene.remove(leo_debris_objectArray[cleaner_target_array[i]]);
+					scene.remove(cleaner_objectArray[i]); 
+					leo_debris_destroyed_array[cleaner_target_array[i]] = 1;
+
+				}
+				
+				cleaner_objectArray[i].position.set(cleaner_positionArray[i].x*scale,cleaner_positionArray[i].y*scale,cleaner_positionArray[i].z*scale);
+			}
+			else if (cleaner_regime_array[i] == 2){
+
+
+				var target_vec = new THREE.Vector3();
+				target_vec.subVectors(meo_debris_positionArray[cleaner_target_array[i]], cleaner_positionArray[i]);
+				target_distance = target_vec.length();
+				target_dir = target_vec.normalize();
+
+				if (target_distance > 2.0)
+				{
+					cleaner_positionArray[i].x = cleaner_positionArray[i].x + target_vec.x*3;
+					cleaner_positionArray[i].y = cleaner_positionArray[i].y + target_vec.y*3;
+					cleaner_positionArray[i].z = cleaner_positionArray[i].z + target_vec.z*3;
+				}
+				else if (meo_debris_state_array[cleaner_target_array[i]] < 1.0)
+				{
+					cleaner_positionArray[i] = meo_debris_positionArray[cleaner_target_array[i]];
+					cleaner_objectArray[i].children[0].material.color.b = 0.0;
+
+					scale_factor = 1 - meo_debris_state_array[cleaner_target_array[i]];
+
+					cleaner_objectArray[i].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+					meo_debris_objectArray[cleaner_target_array[i]].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+
+					meo_debris_state_array[cleaner_target_array[i]] = meo_debris_state_array[cleaner_target_array[i]] + 0.02;
+					
+				}
+				else
+				{
+					cleaner_positionArray[i] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					meo_debris_positionArray[cleaner_target_array[i]] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					meo_destroyed = meo_destroyed + 1;
+					meo_debris_state_array[cleaner_target_array[i]] = -0.01;
+					cleaner_state_array[i] = -1;
+					scene.remove(meo_debris_objectArray[cleaner_target_array[i]]);
+					scene.remove(cleaner_objectArray[i]); 
+					meo_debris_destroyed_array[cleaner_target_array[i]] = 1;
+				}
+				
+				cleaner_objectArray[i].position.set(cleaner_positionArray[i].x*scale,cleaner_positionArray[i].y*scale,cleaner_positionArray[i].z*scale);
+			}
+			else if (cleaner_regime_array[i] == 3){
+
+
+				var target_vec = new THREE.Vector3();
+				target_vec.subVectors(geo_debris_positionArray[cleaner_target_array[i]], cleaner_positionArray[i]);
+				target_distance = target_vec.length();
+				target_dir = target_vec.normalize();
+
+				if (target_distance > 2.0)
+				{
+					cleaner_positionArray[i].x = cleaner_positionArray[i].x + target_vec.x*3;
+					cleaner_positionArray[i].y = cleaner_positionArray[i].y + target_vec.y*3;
+					cleaner_positionArray[i].z = cleaner_positionArray[i].z + target_vec.z*3;
+				}
+				else if (geo_debris_state_array[cleaner_target_array[i]] < 1.0)
+				{
+					cleaner_positionArray[i] = geo_debris_positionArray[cleaner_target_array[i]];
+					cleaner_objectArray[i].children[0].material.color.b = 0.0;
+
+					scale_factor = 1 - geo_debris_state_array[cleaner_target_array[i]];
+
+					cleaner_objectArray[i].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+					geo_debris_objectArray[cleaner_target_array[i]].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+
+					geo_debris_state_array[cleaner_target_array[i]] = geo_debris_state_array[cleaner_target_array[i]] + 0.02;
+					
+				}
+				else
+				{
+					cleaner_positionArray[i] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					geo_debris_positionArray[cleaner_target_array[i]] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					geo_destroyed = geo_destroyed +1;
+					geo_debris_state_array[cleaner_target_array[i]] = -0.01;
+					cleaner_state_array[i] = -1;
+					scene.remove(geo_debris_objectArray[cleaner_target_array[i]]);
+					scene.remove(cleaner_objectArray[i]); 
+					geo_debris_destroyed_array[cleaner_target_array[i]] = 1;
+
+				}
+				
+				cleaner_objectArray[i].position.set(cleaner_positionArray[i].x*scale,cleaner_positionArray[i].y*scale,cleaner_positionArray[i].z*scale);
+			}
+		}
+
+	}
+
+}
+	
+
+	
+
+}
+
+
+
+// var b = new THREE.Vector3( 0.0, 1.0, 0.0 );
+
+// var a = new THREE.Euler( beta, alpha, - gamma, 'YXZ' );
+// b.applyEuler(a);
+
+// var diag = b.clone();
+
+// diag.projectOnPlane(new THREE.Vector3( 1.0, 1.0, 1.0 )).normalize().multiplyScalar(800)
+
+// b.normalize().multiplyScalar(1500);
+
+// ring.lookAt(b);
+
+
+}
+
+function update(){
+
+
+if (game_state != "paused" && game_state != "game_over")
+{
+
+	
+
+	ring.scale.set(
+		target_altitude, 
+		target_altitude, 
+		target_altitude )
+
+	var leo_current = 0;
+	for(var i=0; i<leo_debris_state_array.length; i++) {
+		if (leo_debris_destroyed_array[i] == 0 ){
+				leo_current = leo_current +1;
+			}
+		}
+
+	var meo_current = 0;
+	for(var i=0; i<meo_debris_state_array.length; i++) {
+		if (meo_debris_destroyed_array[i] == 0 ){
+				meo_current = meo_current +1;
+			}
+		}
+
+	var geo_current = 0;
+	for(var i=0; i<geo_debris_state_array.length; i++) {
+		if (geo_debris_destroyed_array[i] == 0 ){
+				geo_current = geo_current +1;
+			}
+		}
+
+
+	if (leo_current > 35) {
+		document.getElementById("display_message").innerHTML="Warning: LEO Critical";
+	}
+
+
+	if (meo_current > 35) {
+		document.getElementById("display_message").innerHTML="Warning: MEO Critical";
+	}
+
+
+	if (geo_current > 35) {
+		document.getElementById("display_message").innerHTML="Warning: GEO Critical";
+	}
+
+	if (leo_current > 50){
+		game_state = "game_over";
+		document.getElementById("display_message").innerHTML="Low Earth Orbit is Lost!<br>Game Over";
+	}
+
+	if (meo_current > 50){
+		game_state = "game_over";
+		document.getElementById("display_message").innerHTML="Medium Earth Orbit is Lost!<br> Game Over";
+	}
+
+
+	if (geo_current > 50){
+		game_state = "game_over";
+		document.getElementById("display_message").innerHTML="Geostationary Orbit is Lost!<br> Game Over";
+	}
+
+
+	document.getElementById("leo_total").innerHTML=leo_current;
+	document.getElementById("meo_total").innerHTML=meo_current;
+	document.getElementById("geo_total").innerHTML=geo_current;
+
+	rotationamount += 0.002
+	
+	uniforms["sunDirection"].value = new THREE.Vector3(Math.sin( -rotationamount * 2.9),0.2,Math.cos( rotationamount * 2.9));
+	uniforms["viewDirection"].value = new THREE.Vector3(camera.position.x,camera.position.y,camera.position.z);
+
+	// particleSystem.rotation.x = rotationamount * 0.25;
+	// particleSystem.rotation.y = rotationamount * 0.5;
+
+	if (Math.random() < 0.01+( rotationamount / 800 )){
+		test = Math.random();
+		if (test > 0.95){
+			num = 5;
+		} else if (test > 0.75){
+			num = 3;
+		} else {
+			num = 1;
+		}
+
+		for(var i=0; i<num; i++) {
+			leo_colour = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+			leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+			create_debris(120, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, leo_axis );
+
+			leo_end_index = leo_end_index + 1;
+			// console.log(leo_end_index);
+		}
+	}
+
+	if (Math.random() < 0.01+( rotationamount / 800 )){
+
+		test = Math.random();
+		if (test > 0.95){
+			num = 5;
+		} else if (test > 0.75){
+			num = 3;
+		} else {
+			num = 1;
+		}
+
+		for(var i=0; i<num; i++) {
+
+			meo_colour = new THREE.Color( Math.random()*0.25, 0.8, Math.random()*0.25 );
+			meo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+			create_debris(240, meo_debris_positionArray, meo_debris_velocityArray, meo_debris_objectArray, meo_debris_state_array,  meo_debris_destroyed_array, meo_colour, meo_axis );
+			// meo_debris_velocityArray[meo_end_index-1] = meo_debris_velocityArray[meo_end_index-1] + Math.random();
+			meo_end_index = meo_end_index + 1;
+			// console.log(meo_end_index);
+		}
+	}
+
+	if (Math.random() < 0.01+( rotationamount / 800 )){
+
+		test = Math.random();
+		if (test > 0.95){
+			num = 5;
+		} else if (test > 0.75){
+			num = 3;
+		} else {
+			num = 1;
+		}
+
+		for(var i=0; i<num; i++) {
+
+			geo_colour = new THREE.Color( Math.random()*0.25, Math.random()*0.25, 0.8 )
+			geo_axis = new THREE.Vector3(0,1,0).normalize();
+			create_debris(400, geo_debris_positionArray, geo_debris_velocityArray, geo_debris_objectArray, geo_debris_state_array, geo_debris_destroyed_array, geo_colour, geo_axis );
+			geo_debris_velocityArray[geo_end_index].x = geo_debris_velocityArray[geo_end_index].x + (Math.random()-0.5) / 10;
+			geo_debris_velocityArray[geo_end_index].y = geo_debris_velocityArray[geo_end_index].y + (Math.random()-0.5) / 10;
+			geo_debris_velocityArray[geo_end_index].z = geo_debris_velocityArray[geo_end_index].z + (Math.random()-0.5) / 10;
+			geo_end_index = geo_end_index + 1;
+			// console.log(geo_end_index);
+
+		}
+	}
+
+
+	}
+
+	total_cleaned = 0;
+	for(var i=0; i<cleaner_state_array.length; i++) {
+		if (cleaner_state_array[i] == -1){
+			total_cleaned = total_cleaned + 1;
+		}
+	}
+
+	document.getElementById("score").innerHTML="Score: " + total_cleaned;
+	
+
+}
+
+function animate() 
+{
+	requestAnimationFrame( animate );
+	render();		
+	update();
+}
+
+animate();
+
+</script>
+</html>
