@@ -16,11 +16,31 @@
 	color: #ff8800;
 	}
 
+	#score {
+		font-size: 40pt;
+		display: block;
+		position: absolute;
+	}
+
+	#reset {
+		width: 15%;
+	    height: 5%;
+	    text-align: center;
+	    font-size: 30pt;
+	    margin-left: 85%;
+	    display: block;
+	    float: right;
+	    position: absolute;
+	    background-color: rgb(255, 30, 30);
+		color: rgb(50, 0, 0);
+	}
 
 </style>
 </head>
 
 <body>
+<p id="score">
+<div id="reset">RESET</div>
 
 </body>
 
@@ -31,18 +51,64 @@
 
 <script>
 function createPlanet(scene_name,radius,colour,group) {
-	var material = new THREE.MeshBasicMaterial( {
+	var material = new THREE.MeshLambertMaterial( {
 		color: colour,
-        // shading: THREE.SmoothShading,
+        shading: THREE.SmoothShading,
         // transparent: true, 
         // opacity: 1.0
 	} );
-	var geometry = new THREE.SphereGeometry(radius,2,2);
+	var geometry = new THREE.SphereGeometry(radius,16,8);
+
 	var meshname = new THREE.Mesh(geometry, material);
 	group.add(meshname);
 
 	scene_name.add(group);
 }
+
+function createClearPlanet(scene_name,radius,colour,group) {
+	var material = new THREE.MeshBasicMaterial( {
+		color: colour,
+        transparent: true, 
+        opacity: 0.0
+	} );
+	var geometry = new THREE.SphereGeometry(radius,8,4);
+	// var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+	var meshname = new THREE.Mesh(geometry, material);
+	group.add(meshname);
+
+	scene_name.add(group);
+}
+
+function createCleanerObject(scene_name,radius,colour,group) {
+	var material = new THREE.MeshBasicMaterial( {
+		color: colour,
+	} );
+	var geometry = new THREE.SphereGeometry(radius,8,4);
+	// var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+	// var geometry = new THREE.CylinderGeometry( 0, radius, radius*2, 16 );
+	var meshname = new THREE.Mesh(geometry, material);
+	group.add(meshname);
+
+	scene_name.add(group);
+}
+
+function reset_pressed(e)
+{
+	console.log("Reset");
+	reset();
+	game_state = "active"
+
+}
+
+$( "#reset" ).click(function(e) {
+   reset_pressed(e);
+});
+
+$('#reset').on('touchstart', function(e)
+{
+  reset_pressed(e);
+  e.preventDefault();
+});
 </script>
 
 <!-- Shaders -->
@@ -97,7 +163,8 @@ void main()
 	vec3 lights;
 
 	if (colorNight.r < 0.6) {
-	lights = vec3(colorNight.r/3.0,colorNight.g/3.0,colorNight.b/1.5);
+	// lights = vec3(colorNight.r/3.0,colorNight.g/3.0,colorNight.b/1.5);
+	lights = vec3(colorNight.r*1.0,colorNight.g*1.0,colorNight.b*1.0);
 	} else {
 	lights = vec3(colorNight.r*1.0,colorNight.g*0.8,colorNight.b*0.4);
 	}
@@ -134,6 +201,8 @@ var mouse = new THREE.Vector2(), INTERSECTED;
 
 var velocity = [];
 
+var pointLight;
+
 var ring;
 var target_altitude = 120;
 var target_regime = 1;
@@ -146,6 +215,8 @@ var rotationamount = 0;
 var camheight = 0;
 var x = 0.0;
 var z = 0.0;
+
+document.getElementById("reset").style.visibility="hidden";
 
 var particle_buffer;
 
@@ -194,7 +265,7 @@ document.body.appendChild( renderer.domElement );
 // leo_selected(1);
 target_regime = 1;
 
-var pointLight = new THREE.PointLight(0xFFFFFF);
+pointLight = new THREE.PointLight(0xFFFFFF);
 
 // set its position
 pointLight.position.x = 0.5;
@@ -242,37 +313,47 @@ camera.position.z = 0;
 
 camera.lookAt(earth.position);
 
-leo_debris_objectArray = [];
-leo_debris_positionArray = [];
-leo_debris_velocityArray = [];
-leo_debris_state_array = [];
-leo_debris_destroyed_array = [];
+bg_debris_objectArray = [];
+bg_debris_positionArray = [];
+bg_debris_velocityArray = [];
+bg_debris_state_array = [];
+bg_debris_destroyed_array = [];
+
+game_debris_objectArray = [];
+game_debris_positionArray = [];
+game_debris_velocityArray = [];
+game_debris_state_array = [];
+game_debris_destroyed_array = [];
+
+invisible_object_array = [];
 
 cleaner_objectArray = [];
 cleaner_positionArray = [];
 cleaner_velocityArray = [];
 cleaner_regime_array = [];
 cleaner_target_array = [];
-cleaner_state_array = []
+cleaner_state_array = [];
 
 var scale = 1.0;
 var acc_scale = 1;
 var vel_scale = 1;
 
+game_destroyed = 0;
+
 leo_start_index = 0;
-leo_end_index = 600;
-leo_destroyed = 0;
+leo_end_index = 800;
+// leo_destroyed = 0;
 
 meo_start_index = 0;
-meo_end_index = 600;
+meo_end_index = 200;
 // meo_destroyed = 0;
 
 geo_start_index = 0;
-geo_end_index = 600;
+geo_end_index = 300;
 // geo_destroyed = 0;
 
 //Create Debris
-var GM = 100;
+var GM = 200;
 
 function create_debris(altitude, position_array, velocity_array, object_array, state_array, destroyed_array, colour, axis)
 {
@@ -283,6 +364,9 @@ function create_debris(altitude, position_array, velocity_array, object_array, s
 	pos.applyAxisAngle(axis, angle);
 	var vel = axis.cross(pos).normalize().multiplyScalar(speed);
 	position_array.push(pos.multiplyScalar(altitude));
+	vel.x = vel.x + (Math.random()-0.5)/(altitude * 0.2)
+	vel.y = vel.y + (Math.random()-0.5)/(altitude * 0.2)
+	vel.z = vel.z + (Math.random()-0.5)/(altitude * 0.2)
 	velocity_array.push(vel);
 	// var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
 	scobject = new THREE.Object3D();
@@ -292,7 +376,122 @@ function create_debris(altitude, position_array, velocity_array, object_array, s
 	destroyed_array.push(0);
 }
 
-function create_cleaner(e, regime, target)
+function create_game_debris(altitude, position_array, velocity_array, object_array, state_array, destroyed_array, colour, axis, invisible_object_array)
+{
+	var speed = Math.sqrt(GM / altitude); 
+	var pos = new THREE.Vector3(1,0,0);
+	// var axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+	var angle = Math.random()*2*3.14;
+	pos.applyAxisAngle(axis, angle);
+	var vel = axis.cross(pos).normalize().multiplyScalar(speed);
+	position_array.push(pos.multiplyScalar(altitude));
+	vel.x = vel.x + (Math.random()-0.5)/(altitude * 0.2)
+	vel.y = vel.y + (Math.random()-0.5)/(altitude * 0.2)
+	vel.z = vel.z + (Math.random()-0.5)/(altitude * 0.2)
+	velocity_array.push(vel);
+	var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+	scobject = new THREE.Object3D();
+	createPlanet(scene, 15 , colour, scobject);
+	// console.log(scobject);
+
+	var obj_name = String(Math.random()*100000).substring(0,6);
+
+	scobject.children[0].name = obj_name;
+	object_array.push(scobject);
+	state_array.push(Math.random()/2);
+	destroyed_array.push(0);
+
+	scobject = new THREE.Object3D();
+
+	createClearPlanet(scene, 75 , colour, scobject);
+	scobject.children[0].name = obj_name;
+	// console.log(scobject.mesh.material);
+	invisible_object_array.push(scobject);
+}
+
+
+function create_collision_debris(impact_pos, impact_vel, position_array, velocity_array, object_array, state_array, destroyed_array, colour, axis)
+{
+
+	// Piece 1
+	new_pos = impact_pos.clone();
+	position_array.push(new_pos);
+	// console.log(new_pos);
+
+	new_vel = impact_vel.clone();
+	new_vel.multiplyScalar(-1.0);
+	velocity_array.push(new_vel);
+	// console.log(new_vel);
+
+	var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+	scobject = new THREE.Object3D();
+	createPlanet(scene, 15 , colour, scobject);
+	// console.log(scobject);
+
+	var obj_name = String(Math.random()*100000).substring(0,6);
+
+	scobject.children[0].name = obj_name;
+	object_array.push(scobject);
+	state_array.push(Math.random()/2);
+	destroyed_array.push(0);
+
+	scobject = new THREE.Object3D();
+
+	createClearPlanet(scene, 75 , colour, scobject);
+	scobject.children[0].name = obj_name;
+	// console.log(scobject.mesh.material);
+	invisible_object_array.push(scobject);
+
+
+
+
+	// Piece 2
+	new_pos = impact_pos.clone();
+	position_array.push(new_pos);
+	// console.log(new_pos);
+
+
+	new_vel = impact_vel.clone();
+	// new_vel.normalize();
+
+	// new_pos.normalize()
+
+	// new_vel.cross(new_pos);
+
+	// new_vel.multiplyScalar( 0.01 );
+
+	var new_vel = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5);
+
+	//new_vel = impact_vel.clone();
+	//new_vel.multiplyScalar(-1.0);
+	velocity_array.push(new_vel);
+	// console.log(new_vel);
+
+	var color = new THREE.Color( 0.8, Math.random()*0.25, Math.random()*0.25 );
+	scobject = new THREE.Object3D();
+	createPlanet(scene, 15 , colour, scobject);
+	// console.log(scobject);
+
+	var obj_name = String(Math.random()*100000).substring(0,6);
+
+	scobject.children[0].name = obj_name;
+	object_array.push(scobject);
+	state_array.push(Math.random()/2);
+	destroyed_array.push(0);
+
+	scobject = new THREE.Object3D();
+
+	createClearPlanet(scene, 75 , colour, scobject);
+	scobject.children[0].name = obj_name;
+	// console.log(scobject.mesh.material);
+	invisible_object_array.push(scobject);
+
+
+
+
+}
+
+function create_cleaner(regime, target)
 {
 	// Basic Removal
 	number_of_debris = number_of_debris - 1;
@@ -312,11 +511,12 @@ function create_cleaner(e, regime, target)
 	cleaner_velocityArray.push(vel);
 	var color = new THREE.Color( 1,1,1 );
 	scobject = new THREE.Object3D();
-	createPlanet(scene, 8 , color, scobject);
+	createCleanerObject(scene, 8 , color, scobject);
 	cleaner_objectArray.push(scobject);
 	cleaner_regime_array.push(regime);
 	cleaner_target_array.push(target);
 	cleaner_state_array.push(0);
+	console.log(scobject.up);
 }
 
 leo_target = 0;
@@ -325,33 +525,34 @@ geo_target = 0;
 
 leo_colour = new THREE.Color( Math.random()*0.1 + 0.3 , Math.random()*0.1 + 0.6, Math.random()*0.1 + 0.3 );
 
-// // Create LEO
+// Background Debris
+// Create LEO
 for(var i=leo_start_index; i<leo_end_index; i++) {
 	leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-	create_debris(120, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, leo_axis );
+	create_debris(120, bg_debris_positionArray, bg_debris_velocityArray, bg_debris_objectArray, bg_debris_state_array, bg_debris_destroyed_array, leo_colour, leo_axis );
 }
 
 // // Create MEO
 for(var i=meo_start_index; i<meo_end_index; i++) {
 	meo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-	create_debris(240, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, meo_axis );
+	create_debris(240, bg_debris_positionArray, bg_debris_velocityArray, bg_debris_objectArray, bg_debris_state_array, bg_debris_destroyed_array, leo_colour, meo_axis );
 }
 
 // // Create GEO
 for(var i=geo_start_index; i<geo_end_index; i++) {
 	geo_axis = new THREE.Vector3(0,1,0).normalize();
-	create_debris(400, leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, leo_debris_state_array, leo_debris_destroyed_array, leo_colour, geo_axis );
+	create_debris(400, bg_debris_positionArray, bg_debris_velocityArray, bg_debris_objectArray, bg_debris_state_array, bg_debris_destroyed_array, leo_colour, geo_axis );
 }
 
 scene.add( new THREE.AmbientLight( 0x444444 ) );
 
 var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
 light1.position.set( 1, 1, 1 );
-scene.add( light1 );
+// scene.add( light1 );
 
 var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
 light2.position.set( 0, -1, 0 );
-scene.add( light2 );
+// scene.add( light2 );
 
 //
 
@@ -392,14 +593,16 @@ var ab = new THREE.Vector3();
 
 for ( var i = 0; i < positions.length; i += 9 ) {
 
+	d = Math.random()*12+8;
+
 	// velocity
 	velocity.push(new THREE.Vector3( Math.random()-0.5, Math.random()-0.5 , Math.random()-0.5 ));
 
 	// positions
 
-	var x = leo_debris_positionArray[i/9].x;
-	var y = leo_debris_positionArray[i/9].y;
-	var z = leo_debris_positionArray[i/9].z;
+	var x = bg_debris_positionArray[i/9].x;
+	var y = bg_debris_positionArray[i/9].y;
+	var z = bg_debris_positionArray[i/9].z;
 
 	var ax = x + Math.random() * d - d2;
 	var ay = y + Math.random() * d - d2;
@@ -455,9 +658,11 @@ for ( var i = 0; i < positions.length; i += 9 ) {
 
 	// colors
 
-	var vx = Math.random()/0.5 + 0.5;
-	var vy = Math.random()/0.5 + 0.5;
-	var vz = Math.random()/0.5 + 0.5;
+	grey = 0.4 + Math.random()/5
+
+	var vx = grey;
+	var vy = grey;
+	var vz = grey;
 
 	color.setRGB( vx, vy, vz );
 
@@ -510,50 +715,50 @@ var material = new THREE.MeshPhongMaterial( {
 // 	color: 0xaaaaaa, vertexColors: THREE.VertexColors
 // } );
 
-
-
 mesh = new THREE.Mesh( geometry, material );
 scene.add( mesh );
 
-sphere_group = [];
-
-
-var geometry = new THREE.SphereGeometry( 20, 20, 20 );
-
-for ( var i = 0; i < 10; i ++ ) {
-
-	var object = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff } ) );
-
-	object.position.x = Math.random() * 800 - 400;
-	object.position.y = Math.random() * 800 - 400;
-	object.position.z = Math.random() * 800 - 400;
-
-	object.rotation.x = Math.random() * 2 * Math.PI;
-	object.rotation.y = Math.random() * 2 * Math.PI;
-	object.rotation.z = Math.random() * 2 * Math.PI;
-
-	object.scale.x = 5;
-	object.scale.y = 5;
-	object.scale.z = 5;
-
-	sc_object = new THREE.Object3D();
-	sc_object.add(object);
-
-	sphere_group.push(sc_object);
-
-	scene.add(sc_object);
 
 
 
 
-}
+// Create Game Debris
+// for(var i=0; i<100; i++) {
+// 	game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
+// 	leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+// 	create_game_debris(200, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, leo_axis );
+// }
 
 
+// sphere_group = [];
 
 
+// var geometry = new THREE.SphereGeometry( 20, 20, 20 );
 
+// for ( var i = 0; i < 10; i ++ ) {
 
+// 	var object = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff } ) );
 
+// 	object.position.x = Math.random() * 800 - 400;
+// 	object.position.y = Math.random() * 800 - 400;
+// 	object.position.z = Math.random() * 800 - 400;
+
+// 	object.rotation.x = Math.random() * 2 * Math.PI;
+// 	object.rotation.y = Math.random() * 2 * Math.PI;
+// 	object.rotation.z = Math.random() * 2 * Math.PI;
+
+// 	object.scale.x = 5;
+// 	object.scale.y = 5;
+// 	object.scale.z = 5;
+
+// 	sc_object = new THREE.Object3D();
+// 	sc_object.add(object);
+
+// 	sphere_group.push(sc_object);
+
+// 	scene.add(sc_object);
+
+// }
 
 
 function render(){
@@ -579,7 +784,7 @@ function render_debris(position_array, velocity_array, object_array, i)
 	position_array[i].y = position_array[i].y + velocity_array[i].y/vel_scale;
 	position_array[i].z = position_array[i].z + velocity_array[i].z/vel_scale;
 
-	//object_array[i].position.set(position_array[i].x*scale, position_array[i].y*scale, position_array[i].z*scale);
+	object_array[i].position.set(position_array[i].x*scale, position_array[i].y*scale, position_array[i].z*scale);
 
 }
 
@@ -588,10 +793,49 @@ if (game_state != "paused" && game_state != "game_over")
 {
 
 // // Render LEO Debris
-for(var i=leo_start_index; i<leo_debris_objectArray.length; i++) {
-	if (leo_debris_destroyed_array[i] == 0){
-		render_debris(leo_debris_positionArray, leo_debris_velocityArray, leo_debris_objectArray, i);
+for(var i=leo_start_index; i<bg_debris_objectArray.length; i++) {
+	if (bg_debris_destroyed_array[i] == 0){
+		render_debris(bg_debris_positionArray, bg_debris_velocityArray, bg_debris_objectArray, i);
 	}
+}
+
+// Render Game Debris
+for(var i=0; i<game_debris_objectArray.length; i++) {
+	//if (game_debris_objectArray[i].name != "DEAD"){
+		
+		
+		if ( game_debris_state_array[i] < 2 ){
+			game_debris_state_array[i] = game_debris_state_array[i] + 0.004;
+		}
+
+		if ( game_debris_state_array[i] < 1 ){
+			game_debris_objectArray[i].children[0].material.color.setRGB( 1.0, 1-game_debris_state_array[i], 0 )
+		}
+
+		render_debris(game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, i);
+
+		invisible_object_array[i].position.x = game_debris_positionArray[i].x;
+		invisible_object_array[i].position.y = game_debris_positionArray[i].y;
+		invisible_object_array[i].position.z = game_debris_positionArray[i].z;
+
+		if ( game_debris_state_array[i] > 1 && game_debris_state_array[i] < 2 && game_debris_destroyed_array[i] != 1){
+			create_collision_debris(
+				game_debris_positionArray[i], 
+				game_debris_velocityArray[i], 
+				game_debris_positionArray, 
+				game_debris_velocityArray, 
+				game_debris_objectArray, 
+				game_debris_state_array, 
+				game_debris_destroyed_array, 
+				game_colour, 
+				leo_axis 
+				);
+			
+			game_debris_state_array[i] = 2.5
+		}
+			
+		
+	//}
 }
 
 // Render LEO Cleaner
@@ -602,42 +846,48 @@ if ( cleaner_objectArray.length > 0){
 
 			if (cleaner_regime_array[i] == 1){
 
-
 				var target_vec = new THREE.Vector3();
-				target_vec.subVectors(leo_debris_positionArray[cleaner_target_array[i]], cleaner_positionArray[i]);
+				target_vec.subVectors(game_debris_positionArray[cleaner_target_array[i]], cleaner_positionArray[i]);
 				target_distance = target_vec.length();
 				target_dir = target_vec.normalize();
 
-				if (target_distance > 2.0)
+				// cleaner_objectArray[i].lookAt(game_debris_positionArray[cleaner_target_array[i]]);
+				// cleaner_objectArray[i].up = new THREE.Vector3(0,0,1);
+
+				if (target_distance > 12.0)
 				{
-					cleaner_positionArray[i].x = cleaner_positionArray[i].x + target_vec.x*3;
-					cleaner_positionArray[i].y = cleaner_positionArray[i].y + target_vec.y*3;
-					cleaner_positionArray[i].z = cleaner_positionArray[i].z + target_vec.z*3;
+					cleaner_positionArray[i].x = cleaner_positionArray[i].x + target_vec.x*5;
+					cleaner_positionArray[i].y = cleaner_positionArray[i].y + target_vec.y*5;
+					cleaner_positionArray[i].z = cleaner_positionArray[i].z + target_vec.z*5;
+					game_debris_destroyed_array[cleaner_target_array[i]] = 1;
 				}
-				else if (leo_debris_state_array[cleaner_target_array[i]] < 1.0)
+				else if (game_debris_state_array[cleaner_target_array[i]] < 1.0)
 				{
-					cleaner_positionArray[i] = leo_debris_positionArray[cleaner_target_array[i]];
+					cleaner_positionArray[i] = game_debris_positionArray[cleaner_target_array[i]];
 					cleaner_objectArray[i].children[0].material.color.b = 0.0;
 
-					scale_factor = 1 - leo_debris_state_array[cleaner_target_array[i]];
+					scale_factor = 1 - game_debris_state_array[cleaner_target_array[i]];
 
 					cleaner_objectArray[i].children[0].scale.set(scale_factor,scale_factor,scale_factor);
-					leo_debris_objectArray[cleaner_target_array[i]].children[0].scale.set(scale_factor,scale_factor,scale_factor);
+					game_debris_objectArray[cleaner_target_array[i]].children[0].scale.set(scale_factor,scale_factor,scale_factor);
 
-					leo_debris_state_array[cleaner_target_array[i]] = leo_debris_state_array[cleaner_target_array[i]] + 0.02;
+					game_debris_state_array[cleaner_target_array[i]] = game_debris_state_array[cleaner_target_array[i]] + 0.02;
 					
 				}
 				else
 				{
 					cleaner_positionArray[i] = new THREE.Vector3( 0.0, 0.0, 0.0 );
-					leo_debris_positionArray[cleaner_target_array[i]] = new THREE.Vector3( 0.0, 0.0, 0.0 );
-					leo_destroyed = leo_destroyed +1;
+					game_debris_positionArray[cleaner_target_array[i]] = new THREE.Vector3( 0.0, 0.0, 0.0 );
+					game_destroyed = game_destroyed +1;
 
-					leo_debris_state_array[cleaner_target_array[i]] = -0.01;
+					game_debris_state_array[cleaner_target_array[i]] = -0.01;
 					cleaner_state_array[i] = -1;
-					scene.remove(leo_debris_objectArray[cleaner_target_array[i]]);
+					scene.remove(game_debris_objectArray[cleaner_target_array[i]]);
+					scene.remove(invisible_object_array[cleaner_target_array[i]]);
 					scene.remove(cleaner_objectArray[i]); 
-					leo_debris_destroyed_array[cleaner_target_array[i]] = 1;
+					game_debris_destroyed_array[cleaner_target_array[i]] = 1;
+
+					console.log(cleaner_objectArray);
 
 				}
 				
@@ -652,43 +902,63 @@ if ( cleaner_objectArray.length > 0){
 
 for ( var i = 0; i < positions.length; i += 9 ) {
 
-					positions[ i ]     = positions[ i ] + leo_debris_velocityArray[i/9].x;
-					positions[ i + 1 ] = positions[ i + 1] + leo_debris_velocityArray[i/9].y;
-					positions[ i + 2 ] = positions[ i + 2] + leo_debris_velocityArray[i/9].z;
+	positions[ i ]     = positions[ i ] + bg_debris_velocityArray[i/9].x;
+	positions[ i + 1 ] = positions[ i + 1] + bg_debris_velocityArray[i/9].y;
+	positions[ i + 2 ] = positions[ i + 2] + bg_debris_velocityArray[i/9].z;
 
-					positions[ i + 3 ] = positions[ i + 3] + leo_debris_velocityArray[i/9].x;
-					positions[ i + 4 ] = positions[ i + 4] + leo_debris_velocityArray[i/9].y;
-					positions[ i + 5 ] = positions[ i + 5] + leo_debris_velocityArray[i/9].z;
+	positions[ i + 3 ] = positions[ i + 3] + bg_debris_velocityArray[i/9].x;
+	positions[ i + 4 ] = positions[ i + 4] + bg_debris_velocityArray[i/9].y;
+	positions[ i + 5 ] = positions[ i + 5] + bg_debris_velocityArray[i/9].z;
 
-					positions[ i + 6 ] = positions[ i + 6] + leo_debris_velocityArray[i/9].x;
-					positions[ i + 7 ] = positions[ i + 7] + leo_debris_velocityArray[i/9].y;
-					positions[ i + 8 ] = positions[ i + 8] + leo_debris_velocityArray[i/9].z;
+	positions[ i + 6 ] = positions[ i + 6] + bg_debris_velocityArray[i/9].x;
+	positions[ i + 7 ] = positions[ i + 7] + bg_debris_velocityArray[i/9].y;
+	positions[ i + 8 ] = positions[ i + 8] + bg_debris_velocityArray[i/9].z;
 
-				}
+}
 
-				mesh.geometry.attributes.position.needsUpdate = true;
+mesh.geometry.attributes.position.needsUpdate = true;
 	
 
 }
 
-controls.update();
+// controls.update();
 
 }
 
-function checkIntersection(){
+function fireRay(mouse, camera){
+
 	raycaster.setFromCamera( mouse, camera );
 
-	intersects = raycaster.intersectObjects( sphere_group, true );
+	intersects = raycaster.intersectObjects( invisible_object_array, true );
 
 	if ( intersects.length > 0 ) {
 
 		if ( INTERSECTED != intersects[ 0 ].object ) {
 
 			INTERSECTED = intersects[ 0 ].object;
+			// console.log(intersects[0]);
 			// INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-			INTERSECTED.material.color.setHex( 0xff0000 );
-			INTERSECTED.scale.set(0.5, 0.5, 0.5);
+
+			INTERSECTED.material.color.setHex( 0x11ee22 );
+			INTERSECTED.scale.set(0.1, 0.1, 0.1);
+
+			// INTERSECTED.name = "DEAD";
+			// INTERSECTED.visible = false;
+			// console.log(INTERSECTED);
+			// console.log(INTERSECTED.name);
 			// scene.remove(INTERSECTED);
+
+			for ( var i = 0; i < game_debris_objectArray.length; i += 1 ) {
+				if (game_debris_objectArray[i].children[0].name == INTERSECTED.name){
+					// console.log(i);
+					create_cleaner(1, i);
+					game_debris_objectArray[i].children[0].currentHex = game_debris_objectArray[i].children[0].material.emissive.getHex();
+					game_debris_objectArray[i].children[0].material.emissive.setHex(  0x11ee22 );
+					//game_debris_objectArray[i].children[0].material.color.setHex( 0x11ee22 );
+				}
+			}
+
+			
 
 		}
 
@@ -697,18 +967,25 @@ function checkIntersection(){
 		INTERSECTED = null;
 
 	}
+
+	}
+
+function checkIntersection(){
+
+	fireRay(mouse, camera);
+
 }
 
 function onTouch(event){
 	mouse.x = ( event.originalEvent.touches[0].pageX / window.innerWidth ) * 2 - 1;
 	mouse.y = ( ( event.originalEvent.touches[0].pageY / window.innerHeight ) * 2 - 1) *-1;
-	checkIntersection()
+	checkIntersection();
 }
 
 function onClick(event){
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-	checkIntersection()
+	checkIntersection();
 }
 
 $("body").click(function(event) {
@@ -725,15 +1002,53 @@ $("body").on('touchstart', function(event){
 function update(){
 
 
-if (game_state != "paused" && game_state != "game_over")
-{
+	if (game_state != "paused" && game_state != "game_over")
+	{
 
 	rotationamount += 0.002
 	
 	uniforms["sunDirection"].value = new THREE.Vector3(Math.sin( -rotationamount * 2.9),0.2,Math.cos( rotationamount * 2.9));
 	uniforms["viewDirection"].value = new THREE.Vector3(camera.position.x,camera.position.y,camera.position.z);
 
+	pointLight.position.x = uniforms["sunDirection"].value.x * 1000;
+	pointLight.position.y = uniforms["sunDirection"].value.y * 1000;
+	pointLight.position.z = uniforms["sunDirection"].value.z * 1000;
+
+	// + (rotationamount/100)
+
+	if (Math.random() < 0.001 + (rotationamount/300)  )
+	{
+		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
+		leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+		create_game_debris(120, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, leo_axis, invisible_object_array );
 	}
+
+	if (Math.random() < 0.001 + (rotationamount/5000))
+	{
+		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
+		leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+		create_game_debris(240, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, leo_axis, invisible_object_array );
+	}
+
+	if (Math.random() < 0.001 + (rotationamount/300))
+	{
+		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
+		geo_axis = new THREE.Vector3(0,1,0).normalize();
+		create_game_debris(400, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, geo_axis, invisible_object_array );
+	}
+
+
+	}
+
+	for(var i=0; i<game_debris_positionArray.length; i++) {
+		// console.log( game_debris_positionArray[i].length() );
+		if ( game_debris_positionArray[i].length() < 60 || game_debris_positionArray[i].length() > 600 ){
+			scene.remove(game_debris_objectArray[i]);
+			game_debris_destroyed_array[i] = 1;
+		}
+	}
+
+
 
 	total_cleaned = 0;
 	for(var i=0; i<cleaner_state_array.length; i++) {
@@ -741,6 +1056,22 @@ if (game_state != "paused" && game_state != "game_over")
 			total_cleaned = total_cleaned + 1;
 		}
 	}
+
+	total_debris = 0;
+	for(var i=0; i<game_debris_destroyed_array.length; i++) {
+		if (game_debris_destroyed_array[i] == 0){
+			total_debris = total_debris + 1;
+		}
+	}
+
+	if (total_debris > 50){
+		// reset();
+		game_state = "game_over"
+		document.getElementById("reset").style.visibility="visible";
+
+	}
+
+	document.getElementById("score").innerHTML="Score: " + total_cleaned;
 	
 }
 
@@ -751,7 +1082,56 @@ function animate()
 	update();
 }
 
+function reset(){
+
+	document.getElementById("reset").style.visibility="hidden";
+
+	for(var i=0; i<game_debris_objectArray.length; i++) {
+		scene.remove(game_debris_objectArray[i]);
+	}
+
+	for(var i=0; i<invisible_object_array.length; i++) {
+		scene.remove(invisible_object_array[i]);
+	}
+
+	for(var i=0; i<cleaner_objectArray.length; i++) {
+		// console.log(cleaner_objectArray[i])
+		scene.remove(cleaner_objectArray[i]);
+	}
+
+	rotationamount = 0;
+
+	game_debris_objectArray = [];
+	game_debris_positionArray = [];
+	game_debris_velocityArray = [];
+	game_debris_state_array = [];
+	game_debris_destroyed_array = [];
+
+	invisible_object_array = [];
+
+	cleaner_objectArray = [];
+	cleaner_positionArray = [];
+	cleaner_velocityArray = [];
+	cleaner_regime_array = [];
+	cleaner_target_array = [];
+	cleaner_state_array = [];
+
+}
+
 animate();
+
+
+
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-40268265-1', 'auto');
+  ga('send', 'pageview');
 
 </script>
 </html>
