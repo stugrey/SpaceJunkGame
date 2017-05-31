@@ -44,7 +44,7 @@
 
 </body>
 
-<script src="three.min.js"></script>
+<script src="three.min.72.js"></script>
 <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 <script src="TrackballControls.js"></script>
 
@@ -97,6 +97,8 @@ function reset_pressed(e)
 	console.log("Reset");
 	reset();
 	game_state = "active"
+	ga('send', 'event', 'button', 'click', 'new game');
+
 
 }
 
