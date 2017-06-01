@@ -9,8 +9,36 @@
 </head>
 
 <body>
+
 <div id="score"></div>
 <div id="reset">RESET</div>
+
+
+
+
+<!-- The overlay -->
+<div id="myNav" class="overlay">
+
+  <!-- Button to close the overlay navigation -->
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+
+  <!-- Overlay content -->
+  <div class="overlay-content">
+  This is the first question!
+    <a href="#">Answer 1</a>
+    <a href="#">Answer 2</a>
+    <a href="#">Answer 3</a>
+    <a href="#">Answer 4</a>
+  </div>
+
+</div>
+
+<!-- Use any element to open/show the overlay navigation menu -->
+<span id="open_overlay_btn" onclick="openNav()">open</span>
+
+
+
+
 
 </body>
 
@@ -20,6 +48,18 @@
 
 
 <script>
+
+/* Open when someone clicks on the span element */
+function openNav() {
+    document.getElementById("myNav").style.width = "100%";
+}
+
+/* Close when someone clicks on the "x" symbol inside the overlay */
+function closeNav() {
+    document.getElementById("myNav").style.width = "0%";
+}
+
+
 function createPlanet(scene_name,radius,colour,group) {
 	var material = new THREE.MeshLambertMaterial( {
 		color: colour,
@@ -191,7 +231,7 @@ document.getElementById("reset").style.visibility="hidden";
 
 var particle_buffer;
 
-game_state = "paused";
+game_state = "active";
 
 //document.getElementById("display_message").innerHTML="Select the target orbit using the buttons below. <br> Press LAUNCH to remove some junk!";
 
@@ -248,7 +288,7 @@ var uniforms = {
 	viewDirection: { type: "v3", value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Not Used!
 	texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "earth1024.jpg" ) },
 	texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthNight1024.jpg" ) }, 
-	spectexture: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthSpec.jpg" ) },
+	spectexture: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthSpec.png" ) },
 	cloudtexture: { type: "t", value: THREE.ImageUtils.loadTexture( "clouds1024.jpg" ) }
 };
 
