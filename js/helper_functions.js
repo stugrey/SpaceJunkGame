@@ -8,6 +8,7 @@ function openNav() {
 /* Close when someone clicks on the "x" symbol inside the overlay */
 function closeNav() {
     document.getElementById("myNav").style.width = "0%";
+    console.log("Close NAV!");
 }
 
 
@@ -245,8 +246,10 @@ function close_overlay_pressed(e)
 {
 	console.log("close_overlay");
 	closeNav();
-	game_state="active";
-	level_state=1;
+	if (level_state == 0) {
+		level_state = 1;
+		game_state = "active";
+	}
 }
 
 $( "#close_button" ).click(function(e) {

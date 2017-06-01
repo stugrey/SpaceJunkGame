@@ -22,7 +22,7 @@
     <span id="overlay_description_text">
     🚀🚯🕹️<br><br>
     👩🏻‍🚀💬 "Hello Doctor! We need your help! Dangerous space debris has been detected in 🌍 orbit."<br><br>
-    👩🏻‍🚀💬 "Our tracking stations will highlight the debris in red but you need to select the debris to be removed by tapping on it!""
+    👩🏻‍🚀💬 "Our tracking stations will highlight the debris in red but you need to select the debris to be removed by tapping on it!"
     </span>
 
 <!--     <a href="#">Answer 1</a>
@@ -36,16 +36,9 @@
 
 
 </body>
-<!-- <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script> -->
-<script src="js/jquery-1.11.3.min.js"></script>
-
+<script src="js/jquery-3.2.1.min.js"></script>
 <script src="js/three.min.js"></script>
-
 <script src="js/helper_functions.js"></script>
-
-<!-- <script src="TrackballControls.js"></script> -->
-
-
 
 
 <!-- Shaders -->
@@ -730,17 +723,37 @@ function update(){
 
 	}
 
+	
+
+}
+
+function check_state() {
+
 	if ( level_state == 1 ){
-		document.getElementById("score").innerHTML="Score: " + total_cleaned;
+		document.getElementById("score").innerHTML="Score: " + total_cleaned; 
+		if ( total_cleaned > 5 ) {
+
+			reset();
+			openNav();
+
+			game_state = "paused";
+
+			document.getElementById("overlay_description_text").textContent="Test";
+			document.getElementById("close_button").innerHTML="Continue";
+
+			level_state = 2;
+		}
 	}
 
 }
 
 function animate() 
 {
+	check_state();
 	requestAnimationFrame( animate );
 	render();		
 	update();
+	
 }
 
 function reset(){
