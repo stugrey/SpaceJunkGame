@@ -46,6 +46,7 @@ body {
     z-index: 1; /* Sit on top */
     left: 0;
     top: 0;
+    font-size: 30px;
     background-color: rgb(0,0,0); /* Black fallback color */
     background-color: rgba(0,0,0, 0.7); /* Black w/opacity */
     overflow-x: hidden; /* Disable horizontal scroll */
@@ -55,10 +56,18 @@ body {
 /* Position the content inside the overlay */
 .overlay-content {
     position: relative;
-    top: 25%; /* 25% from the top */
+    top: 10%; /* 25% from the top */
     width: 100%; /* 100% width */
     text-align: center; /* Centered text/links */
     margin-top: 30px; /* 30px top margin to avoid conflict with the close button on smaller screens */
+}
+
+#overlay_description_text {
+	display: block;
+    width: 70%; /* 100% width */
+    text-align: center; /* Centered text/links */
+    margin-top: 30px; /* 30px top margin to avoid conflict with the close button on smaller screens */
+    margin-left: 15%;
 }
 
 /* The navigation links inside the overlay */
