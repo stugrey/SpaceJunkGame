@@ -1,0 +1,31 @@
+@font-face {
+    font-family: Affogato;
+    src: url("Affogato-Regular.woff") format("woff"), url("Affogato-Regular.ttf")  format("truetype");
+}
+
+body {
+	background-color: #000000;
+	margin: 0px;
+	overflow: hidden;
+	color: #ff8800;
+	font-family: "Affogato";
+}
+
+#score {
+	font-size: 40pt;
+	display: block;
+	position: absolute;
+}
+
+#reset {
+	width: 30%;
+	height: 7%;
+	text-align: center;
+	font-size: 30pt;
+	margin-left: 35%;
+	display: block;
+	float: right;
+	position: absolute;
+	background-color: rgb(255, 30, 30);
+	color: rgb(50, 0, 0);
+}
