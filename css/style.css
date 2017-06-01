@@ -1,6 +1,6 @@
 @font-face {
     font-family: Affogato;
-    src: url("Affogato-Regular.woff") format("woff"), url("Affogato-Regular.ttf")  format("truetype");
+    src: url("../fonts/Affogato-Regular.woff") format("woff"), url("../fonts/Affogato-Regular.ttf")  format("truetype");
 }
 
 body {

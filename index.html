@@ -5,7 +5,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	<title>🚀🚯🕹️</title>
-<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body>
@@ -36,11 +36,12 @@
 
 
 </body>
-<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script> -->
+<script src="js/jquery-1.11.3.min.js"></script>
 
-<script src="three.min.js"></script>
+<script src="js/three.min.js"></script>
 
-<script src="helper_functions.js"></script>
+<script src="js/helper_functions.js"></script>
 
 <!-- <script src="TrackballControls.js"></script> -->
 
@@ -182,10 +183,10 @@ pointLight.position.z = 0.5;
 var uniforms = {
 	sunDirection: { type: "v3", value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Not Used!
 	viewDirection: { type: "v3", value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Not Used!
-	texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "earth1024.jpg" ) },
-	texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthNight1024.jpg" ) }, 
-	spectexture: { type: "t", value: THREE.ImageUtils.loadTexture( "EarthSpec.png" ) },
-	cloudtexture: { type: "t", value: THREE.ImageUtils.loadTexture( "clouds1024.jpg" ) }
+	texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/earth1024.jpg" ) },
+	texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/EarthNight1024.jpg" ) }, 
+	spectexture: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/EarthSpec.png" ) },
+	cloudtexture: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/clouds1024.jpg" ) }
 };
 
 var vertShader = document.getElementById('vertexShader').innerHTML;
@@ -656,7 +657,6 @@ $("body").click(function(event) {
 });
 
 $("body").on('touchstart', function(event){
-
   	event.preventDefault();
 	onTouch(event);
 });
