@@ -3,12 +3,20 @@
 /* Open when someone clicks on the span element */
 function openNav() {
     document.getElementById("myNav").style.width = "100%";
+    game_state = "paused";
+    overlay_state = "open";
+	LEO_debris_generation_rate = 0;
+	MEO_debris_generation_rate = 0;
+	GEO_debris_generation_rate = 0;
 }
 
 /* Close when someone clicks on the "x" symbol inside the overlay */
 function closeNav() {
     document.getElementById("myNav").style.width = "0%";
     console.log("Close NAV!");
+    level_state = level_state + 1;
+    game_state = "active";
+    overlay_state = "closed";
 }
 
 
@@ -226,7 +234,6 @@ function reset_pressed(e)
 {
 	console.log("Reset");
 	reset();
-	game_state = "active"
 	ga('send', 'event', 'button', 'click', 'new game');
 
 }
@@ -246,10 +253,6 @@ function close_overlay_pressed(e)
 {
 	console.log("close_overlay");
 	closeNav();
-	if (level_state == 0) {
-		level_state = 1;
-		game_state = "active";
-	}
 }
 
 $( "#close_button" ).click(function(e) {

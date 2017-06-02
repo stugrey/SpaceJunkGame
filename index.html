@@ -16,19 +16,21 @@
 <!-- The overlay -->
 <div id="myNav" class="overlay">
   <!-- Button to close the overlay navigation -->
-  <a id="close_button" href="javascript:void(0)" class="closebtn" onclick="closeNav()">Start</a>
+  <a id="close_button" href="javascript:void(0)" class="closebtn">Start</a>
   <!-- Overlay content -->
   <div class="overlay-content">
     <span id="overlay_description_text">
     🚀🚯🕹️<br><br>
-    👩🏻‍🚀💬 "Hello Doctor! We need your help! Dangerous space debris has been detected in 🌍 orbit."<br><br>
+    👩🏻‍🚀💬 "Hello? HELLO! Can you hear me. We need your help! Dangerous space debris has been detected in 🌍 orbit."<br><br>
+    👩🏻‍🚀💬 "I need to repair some satellites, but I'll need you to clean up some space debris so i can do it safely!"<br><br>
     👩🏻‍🚀💬 "Our tracking stations will highlight the debris in red but you need to select the debris to be removed by tapping on it!"
     </span>
 
-<!--     <a href="#">Answer 1</a>
-    <a href="#">Answer 2</a>
-    <a href="#">Answer 3</a>
-    <a href="#">Answer 4</a> -->
+    <span id="overlay_questions">
+		
+    </span>
+
+
   </div>
 </div>
 <!-- Use any element to open/show the overlay navigation menu -->
@@ -123,6 +125,8 @@ void main()
 <!-- End Shaders -->
 <script type="text/javascript">
 
+debug = false;
+
 openNav();
 document.getElementById("reset").style.visibility="hidden";
 
@@ -140,8 +144,17 @@ var number_of_debris = 60;
 
 // Game Variables
 
-game_state = "paused";
-level_state = 0;
+var game_state = "paused";
+var level_state = 0;
+var game_total_score = 0;
+var game_level_score = 0;
+var LEO_debris_generation_rate = 1;
+var MEO_debris_generation_rate = 1;
+var GEO_debris_generation_rate = 1;
+
+var total_cleaned = 0;
+
+var overlay_state = "open";
 
 // Three JS Variables
 
@@ -220,20 +233,20 @@ bg_debris_velocityArray = [];
 bg_debris_state_array = [];
 bg_debris_destroyed_array = [];
 
-game_debris_objectArray = [];
-game_debris_positionArray = [];
-game_debris_velocityArray = [];
-game_debris_state_array = [];
-game_debris_destroyed_array = [];
+var game_debris_objectArray = [];
+var game_debris_positionArray = [];
+var game_debris_velocityArray = [];
+var game_debris_state_array = [];
+var game_debris_destroyed_array = [];
 
-invisible_object_array = [];
+var invisible_object_array = [];
 
-cleaner_objectArray = [];
-cleaner_positionArray = [];
-cleaner_velocityArray = [];
-cleaner_regime_array = [];
-cleaner_target_array = [];
-cleaner_state_array = [];
+var cleaner_objectArray = [];
+var cleaner_positionArray = [];
+var cleaner_velocityArray = [];
+var cleaner_regime_array = [];
+var cleaner_target_array = [];
+var cleaner_state_array = [];
 
 var scale = 1.0;
 var acc_scale = 1;
@@ -477,36 +490,36 @@ for(var i=leo_start_index; i<bg_debris_objectArray.length; i++) {
 // Render Game Debris
 for(var i=0; i<game_debris_objectArray.length; i++) {
 		
-		if ( game_debris_state_array[i] < 2 ){
-			game_debris_state_array[i] = game_debris_state_array[i] + 0.004;
-		}
+	if ( game_debris_state_array[i] < 2 ){
+		game_debris_state_array[i] = game_debris_state_array[i] + 0.004;
+	}
 
-		if ( game_debris_state_array[i] < 1 ){
-			game_debris_objectArray[i].children[0].material.color.setRGB( 1.0, 1-game_debris_state_array[i], 0 )
-		}
+	if ( game_debris_state_array[i] < 1 ){
+		game_debris_objectArray[i].children[0].material.color.setRGB( 1.0, 1-game_debris_state_array[i], 0 )
+	}
 
-		render_debris(game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, i);
+	render_debris(game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, i);
 
-		invisible_object_array[i].position.x = game_debris_positionArray[i].x;
-		invisible_object_array[i].position.y = game_debris_positionArray[i].y;
-		invisible_object_array[i].position.z = game_debris_positionArray[i].z;
+	invisible_object_array[i].position.x = game_debris_positionArray[i].x;
+	invisible_object_array[i].position.y = game_debris_positionArray[i].y;
+	invisible_object_array[i].position.z = game_debris_positionArray[i].z;
 
-		if ( game_debris_state_array[i] > 1 && game_debris_state_array[i] < 2 && game_debris_destroyed_array[i] != 1){
-			create_collision_debris(
-				game_debris_positionArray[i], 
-				game_debris_velocityArray[i], 
-				game_debris_positionArray, 
-				game_debris_velocityArray, 
-				game_debris_objectArray, 
-				game_debris_state_array, 
-				game_debris_destroyed_array, 
-				game_colour, 
-				leo_axis 
-				);
-			
-			game_debris_state_array[i] = 2.5
-		}
-			
+	if ( game_debris_state_array[i] > 1 && game_debris_state_array[i] < 2 && game_debris_destroyed_array[i] != 1){
+		create_collision_debris(
+			game_debris_positionArray[i], 
+			game_debris_velocityArray[i], 
+			game_debris_positionArray, 
+			game_debris_velocityArray, 
+			game_debris_objectArray, 
+			game_debris_state_array, 
+			game_debris_destroyed_array, 
+			game_colour, 
+			leo_axis 
+			);
+		
+		game_debris_state_array[i] = 2.5
+	}
+		
 }
 
 // Render LEO Cleaner
@@ -558,7 +571,11 @@ if ( cleaner_objectArray.length > 0){
 					scene.remove(cleaner_objectArray[i]); 
 					game_debris_destroyed_array[cleaner_target_array[i]] = 1;
 
-					console.log(cleaner_objectArray);
+					if (debug == true) {
+						console.log(cleaner_objectArray);
+					}
+
+					game_total_score = game_total_score + 1;
 
 				}
 				
@@ -611,7 +628,7 @@ function fireRay(mouse, camera){
 
 			for ( var i = 0; i < game_debris_objectArray.length; i += 1 ) {
 				if (game_debris_objectArray[i].children[0].name == INTERSECTED.name){
-					// console.log(i);
+
 					create_cleaner(1, i);
 					game_debris_objectArray[i].children[0].currentHex = game_debris_objectArray[i].children[0].material.emissive.getHex();
 					game_debris_objectArray[i].children[0].material.emissive.setHex(  0x11ee22 );
@@ -670,21 +687,21 @@ function update(){
 
 	// + (rotationamount/100)
 
-	if (Math.random() < 0.001 + (rotationamount/300)  )
+	if (Math.random() < 0.001 * LEO_debris_generation_rate  )
 	{
 		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
 		leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
 		create_game_debris(120, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, leo_axis, invisible_object_array );
 	}
 
-	if (Math.random() < 0.001 + (rotationamount/5000))
+	if (Math.random() < 0.001 * MEO_debris_generation_rate )
 	{
 		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
 		leo_axis = new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
 		create_game_debris(240, game_debris_positionArray, game_debris_velocityArray, game_debris_objectArray, game_debris_state_array, game_debris_destroyed_array, game_colour, leo_axis, invisible_object_array );
 	}
 
-	if (Math.random() < 0.001 + (rotationamount/300))
+	if (Math.random() < 0.001 * GEO_debris_generation_rate )
 	{
 		game_colour = new THREE.Color( 0.9, 0.1, 0.2 );
 		geo_axis = new THREE.Vector3(0,1,0).normalize();
@@ -723,6 +740,10 @@ function update(){
 
 	}
 
+	if (debug == true) {
+		console.log(level_state, game_state, overlay_state, game_total_score)
+	}
+
 	
 
 }
@@ -730,19 +751,43 @@ function update(){
 function check_state() {
 
 	if ( level_state == 1 ){
-		document.getElementById("score").innerHTML="Score: " + total_cleaned; 
-		if ( total_cleaned > 5 ) {
 
-			reset();
+		
+		document.getElementById("score").innerHTML="Score: " + game_total_score; 
+		LEO_debris_generation_rate = 10;
+		MEO_debris_generation_rate = 0;
+		GEO_debris_generation_rate = 0;
+
+		if ( total_cleaned > 10 && overlay_state == "closed") {
+
+
 			openNav();
 
-			game_state = "paused";
+			document.getElementById("overlay_description_text").textContent="Question Number 1";
 
-			document.getElementById("overlay_description_text").textContent="Test";
+			document.getElementById("overlay_questions").innerHTML="\
+			<a>Incorrect</a>\
+			<a>Incorrect</a>\
+			<a>Incorrect</a>\
+			<a onclick=\"closeNav()\">Correct</a>";
+
+			
 			document.getElementById("close_button").innerHTML="Continue";
 
-			level_state = 2;
 		}
+	}
+
+
+	if ( level_state == 2 ){
+
+		document.getElementById("score").innerHTML="Score: " + game_total_score; 
+
+		if (debug == true) {
+			console.log("level 2")
+		}
+		LEO_debris_generation_rate = 0;
+		MEO_debris_generation_rate = 0;
+		GEO_debris_generation_rate = 20;
 	}
 
 }
