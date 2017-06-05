@@ -282,33 +282,7 @@ $('#close_button').on('touchstart', function(e)
 });
 
 
-$( "#answer_button_pressed_correct" ).click(function(e) {
-	console.log("correct pressed");
-	incrementScore(10);
-	close_overlay_pressed(e);
-});
 
-$('#answer_button_pressed_correct').on('touchstart', function(e)
-{
-	console.log("correct pressed");
-	incrementScore(10);
-	close_overlay_pressed(e);
-	e.preventDefault();
-});
-
-$( ".answer_button_pressed_incorrect" ).click(function(e) {
-	console.log("incorrect pressed");
-	decrementScore(10);
-	close_overlay_pressed(e);
-});
-
-$('.answer_button_pressed_incorrect').on('touchstart', function(e)
-{
-	console.log("incorrect pressed");
-	decrementScore(10);
-	close_overlay_pressed(e);
-	e.preventDefault();
-});
 
 
 
