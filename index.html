@@ -155,6 +155,8 @@ var GEO_debris_generation_rate = 1;
 var total_cleaned = 0;
 
 var overlay_state = "open";
+var game_debris_decay_rate = 0.004;
+
 
 // Three JS Variables
 
@@ -491,7 +493,7 @@ for(var i=leo_start_index; i<bg_debris_objectArray.length; i++) {
 for(var i=0; i<game_debris_objectArray.length; i++) {
 		
 	if ( game_debris_state_array[i] < 2 ){
-		game_debris_state_array[i] = game_debris_state_array[i] + 0.004;
+		game_debris_state_array[i] = game_debris_state_array[i] + game_debris_decay_rate;
 	}
 
 	if ( game_debris_state_array[i] < 1 ){
@@ -748,37 +750,44 @@ function update(){
 
 }
 
+
+// 
+var level_data = [
+	[20.0, 0.0, 0.0, "\
+<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Correct</a>"
+	]
+]
+
 function check_state() {
 
 	if ( level_state == 1 ){
 
+		game_debris_decay_rate = level_state*0.0004;
 		
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
-		LEO_debris_generation_rate = 10;
-		MEO_debris_generation_rate = 0;
-		GEO_debris_generation_rate = 0;
+		LEO_debris_generation_rate = level_data[0][0];
+		MEO_debris_generation_rate = level_data[0][1];
+		GEO_debris_generation_rate = level_data[0][2];
 
-		if ( total_cleaned > 10 && overlay_state == "closed") {
-
-
+		if ( total_cleaned > (level_state*10)-1 && overlay_state == "closed") {
 			openNav();
+			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
+			document.getElementById("overlay_questions").innerHTML=level_data[0][3];
 
-			document.getElementById("overlay_description_text").textContent="Question Number 1";
+			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
-			document.getElementById("overlay_questions").innerHTML="\
-			<a>Incorrect</a>\
-			<a>Incorrect</a>\
-			<a>Incorrect</a>\
-			<a onclick=\"closeNav()\">Correct</a>";
-
-			
-			document.getElementById("close_button").innerHTML="Continue";
+			$('#answer_button_pressed_incorrect').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
 		}
 	}
 
 
 	if ( level_state == 2 ){
+
+		game_debris_decay_rate = 0.0;
 
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
 
@@ -788,6 +797,83 @@ function check_state() {
 		LEO_debris_generation_rate = 0;
 		MEO_debris_generation_rate = 0;
 		GEO_debris_generation_rate = 20;
+
+		if ( total_cleaned > 20 && overlay_state == "closed") {
+
+			openNav();
+
+			document.getElementById("overlay_description_text").textContent="Question Number 2";
+
+			document.getElementById("overlay_questions").innerHTML="\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"incrementScore(10);close_overlay_pressed()\">Correct</a>";
+
+			document.getElementById("close_button").innerHTML="Continue";
+
+		}
+	}
+
+
+	if ( level_state == 3 ){
+
+		game_debris_decay_rate = 0.0;
+
+		document.getElementById("score").innerHTML="Score: " + game_total_score; 
+
+		if (debug == true) {
+			console.log("level 3")
+		}
+		LEO_debris_generation_rate = 0;
+		MEO_debris_generation_rate = 20;
+		GEO_debris_generation_rate = 0;
+
+		if ( total_cleaned > 30 && overlay_state == "closed") {
+
+			openNav();
+
+			document.getElementById("overlay_description_text").textContent="Question Number 3";
+
+			document.getElementById("overlay_questions").innerHTML="\
+			<a id=\"answer_button_pressed_incorrect\">Incorrect</a>\
+			<a id=\"answer_button_pressed_incorrect\">Incorrect</a>\
+			<a id=\"answer_button_pressed_incorrect\">Incorrect</a>\
+			<a id=\"answer_button_pressed_correct\">Correct</a>";
+
+			document.getElementById("close_button").innerHTML="Continue";
+
+		}
+	}
+
+	if ( level_state == 4 ){
+
+		game_debris_decay_rate = 0.0;
+
+		document.getElementById("score").innerHTML="Score: " + game_total_score; 
+
+		if (debug == true) {
+			console.log("level 4")
+		}
+		LEO_debris_generation_rate = 0;
+		MEO_debris_generation_rate = 0;
+		GEO_debris_generation_rate = 20;
+
+		if ( total_cleaned > 40 && overlay_state == "closed") {
+
+			openNav();
+
+			document.getElementById("overlay_description_text").textContent="Question Number 4";
+
+			document.getElementById("overlay_questions").innerHTML="\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"decrementScore(10);close_overlay_pressed()\">Incorrect</a>\
+			<a onclick=\"incrementScore(10);close_overlay_pressed()\">Correct</a>";
+
+			document.getElementById("close_button").innerHTML="Continue";
+
+		}
 	}
 
 }

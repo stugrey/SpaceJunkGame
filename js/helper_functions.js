@@ -1,3 +1,10 @@
+function incrementScore(x){
+	game_total_score = game_total_score + x;
+}
+
+function decrementScore(x){
+	game_total_score = game_total_score - x;
+}
 
 
 /* Open when someone clicks on the span element */
@@ -17,6 +24,15 @@ function closeNav() {
     level_state = level_state + 1;
     game_state = "active";
     overlay_state = "closed";
+
+    for(var i=0; i<game_debris_objectArray.length; i++) {
+		scene.remove(game_debris_objectArray[i]);
+	}
+
+	for(var i=0; i<invisible_object_array.length; i++) {
+		scene.remove(invisible_object_array[i]);
+	}
+
 }
 
 
@@ -264,3 +280,36 @@ $('#close_button').on('touchstart', function(e)
   close_overlay_pressed(e);
   e.preventDefault();
 });
+
+
+$( "#answer_button_pressed_correct" ).click(function(e) {
+	console.log("correct pressed");
+	incrementScore(10);
+	close_overlay_pressed(e);
+});
+
+$('#answer_button_pressed_correct').on('touchstart', function(e)
+{
+	console.log("correct pressed");
+	incrementScore(10);
+	close_overlay_pressed(e);
+	e.preventDefault();
+});
+
+$( ".answer_button_pressed_incorrect" ).click(function(e) {
+	console.log("incorrect pressed");
+	decrementScore(10);
+	close_overlay_pressed(e);
+});
+
+$('.answer_button_pressed_incorrect').on('touchstart', function(e)
+{
+	console.log("incorrect pressed");
+	decrementScore(10);
+	close_overlay_pressed(e);
+	e.preventDefault();
+});
+
+
+
+
