@@ -11,14 +11,16 @@
 <body>
 
 <div id="score"></div>
-<div id="reset">RESET</div>
+
 
 <!-- The overlay -->
 <div id="myNav" class="overlay">
+<div id="reset">RESET</div>
   <!-- Button to close the overlay navigation -->
-  <a id="close_button" href="javascript:void(0)" class="closebtn">Start</a>
+  <a id="close_button" href="javascript:void(0)" class="closebtn" onClick="startClock();">Start</a>
   <!-- Overlay content -->
   <div class="overlay-content">
+
     <span id="overlay_description_text">
     🚀🚯🕹️<br><br>
     👩🏻‍🚀💬 "Hello? HELLO! Can you hear me. We need your help! Dangerous space debris has been detected in 🌍 orbit."<br><br>
@@ -135,7 +137,8 @@ void main()
 
 </script>
 
-<script src="js/main.js"></script>
 <script src="js/questions.js"></script>
+<script src="js/main.js"></script>
+
 
 </html>
