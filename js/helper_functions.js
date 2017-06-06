@@ -33,6 +33,28 @@ function closeNav() {
 		scene.remove(invisible_object_array[i]);
 	}
 
+	for(var i=0; i<cleaner_objectArray.length; i++) {
+		scene.remove(cleaner_objectArray[i]);
+	}
+
+	game_debris_objectArray = [];
+	game_debris_positionArray = [];
+	game_debris_velocityArray = [];
+	game_debris_state_array = [];
+	game_debris_destroyed_array = [];
+
+	invisible_object_array = [];
+
+	cleaner_objectArray = [];
+	cleaner_positionArray = [];
+	cleaner_velocityArray = [];
+	cleaner_regime_array = [];
+	cleaner_target_array = [];
+	cleaner_state_array = [];
+
+	total_cleaned = 0;
+
+
 }
 
 

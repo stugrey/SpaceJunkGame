@@ -28,7 +28,7 @@ var GEO_debris_generation_rate = 1;
 var total_cleaned = 0;
 
 var overlay_state = "open";
-var game_debris_decay_rate = 0.004;
+var game_debris_decay_rate = 0.000;
 
 
 // Three JS Variables
@@ -647,36 +647,41 @@ console.log(question_order);
 
 // 
 var level_data = [
-	[20.0, 0.0, 0.0, "\
-<br>What does LEO stand for?<br>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>\
-<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Low Earth Orbit</a>"
+	[20.0, 0.0, 0.0, "What does LEO stand for?<br><br>",
+[
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>",
+"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Low Earth Orbit</a>"
+]
 	],
 
-	[0.0, 20.0, 0.0, "\
-What does MEO stand for?\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>\
-<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Medium Earth Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+	[0.0, 20.0, 0.0, "What does MEO stand for?<br><br>",
+[
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
+"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Medium Earth Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+]
+
 	],
 
-		[0.0, 0.0, 20.0, "\
-What does GEO stand for?\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>\
-<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Geostationary Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+		[0.0, 0.0, 20.0, "What does GEO stand for?<br><br>",
+[
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
+"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Geostationary Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+]
 	],
 
-		[0.0, 10.0, 10.0, "\
-What altitude is LEO?\
-<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">100 - 2000km</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>\
-<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+		[0.0, 10.0, 10.0, "What altitude is LEO?<br><br>",
+[
+"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">100 - 2000km</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
+"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
+]
 	]
 
 ]
@@ -685,17 +690,18 @@ function check_state() {
 
 	if ( level_state == 1 ){
 
-		game_debris_decay_rate = level_state*0.0004;
+		// game_debris_decay_rate = level_state*0.0004;
 		
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
 		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
 		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
 		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
 
-		if ( total_cleaned > (level_state*10)-1 && overlay_state == "closed") {
+		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
+			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3];
+			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
 			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
@@ -707,17 +713,19 @@ function check_state() {
 
 	if ( level_state == 2 ){
 
-		game_debris_decay_rate = level_state*0.0004;
+		// game_debris_decay_rate = level_state*0.0004;
 		
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
 		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
 		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
 		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
 
-		if ( total_cleaned > (level_state*10)-1 && overlay_state == "closed") {
+		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
+			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3];
+			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
+
 
 			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
@@ -728,17 +736,18 @@ function check_state() {
 
 	if ( level_state == 3 ){
 
-		game_debris_decay_rate = level_state*0.0004;
+		// game_debris_decay_rate = level_state*0.0004;
 		
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
 		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
 		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
 		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
 
-		if ( total_cleaned > (level_state*10)-1 && overlay_state == "closed") {
+		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
+			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3];
+			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
 			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
@@ -749,17 +758,18 @@ function check_state() {
 
 	if ( level_state == 4 ){
 
-		game_debris_decay_rate = level_state*0.0004;
+		// game_debris_decay_rate = level_state*0.0004;
 		
 		document.getElementById("score").innerHTML="Score: " + game_total_score; 
 		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
 		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
 		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
 
-		if ( total_cleaned > (level_state*10)-1 && overlay_state == "closed") {
+		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
+			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3];
+			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
 			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
