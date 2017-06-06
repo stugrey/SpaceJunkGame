@@ -638,45 +638,13 @@ function shuffleArray(array) {
 }
 
 
-question_order = [0,1,2,3];
-
+question_order = Array.apply(null, {length: 14}).map(Number.call, Number)
 shuffleArray(question_order);
-
 console.log(question_order);
 
 correct_preamble = "<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">"
 incorrect_preamble = "<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">"
 // 
-var level_data = [
-	[20.0, 0.0, 0.0, "What does LEO stand for?<br><br>",
-	"Low Earth Orbit",
-	"Launch and Early Orbit",
-	"Low Energy Orbit",
-	"Law Enforcement Officer"
-	],
-
-	[0.0, 20.0, 0.0, "What does MEO stand for?<br><br>",
-	"Medium Earth Orbit",
-	"WRONG",
-	"WRONG",
-	"WRONG"
-	],
-
-	[0.0, 0.0, 20.0, "What does GEO stand for?<br><br>",
-	"Geostationary Orbit",
-	"WRONG",
-	"WRONG",
-	"WRONG"
-	],
-
-	[0.0, 10.0, 10.0, "What altitude is LEO?<br><br>",
-	"100 - 2000km",
-	"WRONG",
-	"WRONG",
-	"WRONG"
-	]
-
-]
 
 function check_state() {
 
@@ -773,7 +741,31 @@ function check_state() {
 		}
 	}
 
+	if ( level_state == 5 ){
+		document.getElementById("score").innerHTML="Final Score: " + game_total_score; 
+		openNav();
+		document.getElementById("overlay_description_text").innerHTML="🚀🚯🕹️<br><br>\
+    👩🏻‍🚀💬 \"Thankyou! You saved the 🌍!\"<br><br>\
+    <span class=\"final_score\">Debris Removed: " + game_total_score + "</span><br><br>" +
+    "<span class=\"final_score\">Time Taken: " + game_total_score + " seconds</span><br><br>" +
+    "<span class=\"final_score\">Total Score: " + game_total_score + "</span>"; 
+
+    document.getElementById("overlay_questions").innerHTML="";
+
+	}
+
 }
+
+
+
+
+
+
+
+
+
+
+
 
 function animate() 
 {
