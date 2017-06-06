@@ -644,44 +644,36 @@ shuffleArray(question_order);
 
 console.log(question_order);
 
-
+correct_preamble = "<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">"
+incorrect_preamble = "<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">"
 // 
 var level_data = [
 	[20.0, 0.0, 0.0, "What does LEO stand for?<br><br>",
-[
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>",
-"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Low Earth Orbit</a>"
-]
+	"Low Earth Orbit",
+	"Launch and Early Orbit",
+	"Low Energy Orbit",
+	"Law Enforcement Officer"
 	],
 
 	[0.0, 20.0, 0.0, "What does MEO stand for?<br><br>",
-[
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
-"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Medium Earth Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
-]
-
+	"Medium Earth Orbit",
+	"WRONG",
+	"WRONG",
+	"WRONG"
 	],
 
-		[0.0, 0.0, 20.0, "What does GEO stand for?<br><br>",
-[
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
-"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">Geostationary Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
-]
+	[0.0, 0.0, 20.0, "What does GEO stand for?<br><br>",
+	"Geostationary Orbit",
+	"WRONG",
+	"WRONG",
+	"WRONG"
 	],
 
-		[0.0, 10.0, 10.0, "What altitude is LEO?<br><br>",
-[
-"<a id=\"answer_button_pressed_correct\" onclick=\"incrementScore(10);close_overlay_pressed()\">100 - 2000km</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Launch and Early Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Low Energy Orbit</a>",
-"<a id=\"answer_button_pressed_incorrect\" onclick=\"decrementScore(10);close_overlay_pressed()\">Law Enforcement Officer</a>"
-]
+	[0.0, 10.0, 10.0, "What altitude is LEO?<br><br>",
+	"100 - 2000km",
+	"WRONG",
+	"WRONG",
+	"WRONG"
 	]
 
 ]
@@ -699,7 +691,8 @@ function check_state() {
 
 		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
-			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
+			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][7] + "</a>" ];
+			shuffleArray(questions);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
 			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
@@ -722,10 +715,10 @@ function check_state() {
 
 		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
-			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
+			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][7] + "</a>" ];
+			shuffleArray(questions);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
 			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
 
 			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
 
@@ -745,7 +738,8 @@ function check_state() {
 
 		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
-			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
+			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][7] + "</a>" ];
+			shuffleArray(questions);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
 			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
@@ -767,7 +761,8 @@ function check_state() {
 
 		if ( total_cleaned > 10 && overlay_state == "closed") {
 			openNav();
-			questions = shuffleArray(level_data[ question_order[ level_state-1] ][4]);
+			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble + level_data[ question_order[level_state-1] ][7] + "</a>" ];
+			shuffleArray(questions);
 			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
 			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
 
