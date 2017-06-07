@@ -119,7 +119,7 @@ var level_data = [
 	[0.0, 0.0, 20.0, "Which of the following is NOT space debris?<br><br>",
 	"Sandwiches",
 	"Frozen Reactor Coolant",
-	"Dead Satelites",
+	"Dead Satellites",
 	"Collision Fragments"
 	]
 
