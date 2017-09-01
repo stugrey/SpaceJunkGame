@@ -679,262 +679,43 @@ incorrect_preamble_2 = "<a id=\"answer_button_pressed_incorrect_2\" onclick=\"de
 incorrect_preamble_3 = "<a id=\"answer_button_pressed_incorrect_3\" onclick=\"decrementScore(10);close_overlay_pressed()\">"
 
 
+
+function level_block(){
+	sec = Math.round(new Date() / 1000) - epoch_offset;
+		
+	document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
+	LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
+	MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
+	GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
+
+	if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
+		document.getElementById("overlay_questions").innerHTML=""
+		openNav();
+		questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
+		shuffleArray(questions);
+
+		document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
+
+		setTimeout(function() {
+			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
+
+			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
+			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
+			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
+			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
+	     }, 2000);
+	}
+}
+
+
 cleaned_per_level = 9;
 // 
 
 function check_state() {
 
-	if ( level_state == 1 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-
-		document.getElementById("close_button").innerHTML=""; 
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-
-	if ( level_state == 2 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 3 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 4 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 5 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 6 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 7 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 8 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 9 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
-	}
-
-	if ( level_state == 10 ){
-
-		sec = Math.round(new Date() / 1000) - epoch_offset;
-		
-		document.getElementById("score").innerHTML="Score: " + game_total_score + " Time: " + sec; 
-		LEO_debris_generation_rate = level_data[ question_order[level_state-1] ][0];
-		MEO_debris_generation_rate = level_data[ question_order[level_state-1] ][1];
-		GEO_debris_generation_rate = level_data[ question_order[level_state-1] ][2];
-
-		if ( total_cleaned > cleaned_per_level && overlay_state == "closed") {
-			openNav();
-			questions = [ correct_preamble + level_data[ question_order[level_state-1] ][4] + "</a>", incorrect_preamble_1 + level_data[ question_order[level_state-1] ][5] + "</a>", incorrect_preamble_2 + level_data[ question_order[level_state-1] ][6] + "</a>", incorrect_preamble_3 + level_data[ question_order[level_state-1] ][7] + "</a>" ];
-			shuffleArray(questions);
-			document.getElementById("overlay_description_text").textContent="Question Number " + level_state.toString();
-			document.getElementById("overlay_questions").innerHTML=level_data[ question_order[level_state-1] ][3] + questions[0] + questions[1] + questions[2] + questions[3];
-
-			$('#answer_button_pressed_correct').on('touchstart', function(e){incrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-			$('#answer_button_pressed_incorrect_1').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_2').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-			$('#answer_button_pressed_incorrect_3').on('touchstart', function(e){decrementScore(10);close_overlay_pressed(e);e.preventDefault();});
-
-		}
+	if ( level_state > 0 && level_state < 11) {
+			document.getElementById("close_button").innerHTML=""
+			level_block()
 	}
 
 	if ( level_state == 11 ){
@@ -952,15 +733,10 @@ function check_state() {
     document.getElementById("overlay_questions").innerHTML="";
 
     level_state = level_state + 1;
-    
-
 	}
 
 	if ( level_state == 12 ){
-
-		// stopClock();
 		document.getElementById("reset").style.visibility="visible";
-
 	}
 
 }
